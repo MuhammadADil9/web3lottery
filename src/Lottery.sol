@@ -1,7 +1,7 @@
 //SPDX License-Identifier:MIT
 pragma solidity ^0.8.18;
 import {VRFCoordinatorV2Interface} from "@chainlink/contracts/src/v0.8/vrf/interfaces/VRFCoordinatorV2Interface.sol";
-
+import {VRFConsumerBaseV2} from "@chainlink/contracts/src/v0.8/vrf/VRFConsumerBaseV2.sol";
 /**
  * @title Lottery contract that will declare random winner at random time
  * @author Adil
@@ -15,7 +15,7 @@ import {VRFCoordinatorV2Interface} from "@chainlink/contracts/src/v0.8/vrf/inter
 // constant :- something that we know by default
 // immutable :- something that will not change when the contract will get deployed
 
-contract lottery {
+contract lottery is VRFConsumerBaseV2 {
     //importing vrf interface
 
     //error
@@ -36,6 +36,7 @@ contract lottery {
     uint32 private immutable callbackGasLimit;
     uint256 private s_requestId = 0;
 
+
     //Events for storing the data on the chain
     event contributor(
         string contributorName,
@@ -50,7 +51,7 @@ contract lottery {
         bytes32 _keyHash,
         uint64 _chainId,
         uint32 _callbackGasLimit
-    ) {
+    )VRFConsumerBaseV2(vrfCordinator){
         timeToMine = timer;
         last_time_stamp = block.timestamp;
         owner = msg.sender;
@@ -84,6 +85,14 @@ contract lottery {
             callbackGasLimit,
             numOfWords
         );
+    }
+
+    //Consumer base contract
+
+    function fulfillRandomWords(
+        uint256 _requestId,
+        uint256[] memory _randomWords
+    ) internal override {
     }
 
     // getters
