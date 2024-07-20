@@ -1,5 +1,6 @@
 //SPDX License-Identifier:MIT
 pragma solidity ^0.8.18;
+import {VRFCoordinatorV2Interface} from "@chainlink/contracts/src/v0.8/vrf/interfaces/VRFCoordinatorV2Interface.sol";
 
 /**
  * @title Lottery contract that will declare random winner at random time
@@ -15,22 +16,24 @@ pragma solidity ^0.8.18;
 // immutable :- something that will not change when the contract will get deployed
 
 contract lottery {
+    //importing vrf interface
+
     //error
     error lottery_TimeLimitNotExcedeed();
     error notEnoughAmount();
 
     //state variables
-    uint256 private constant numOfWords = 1;
-    uint256 private constant blockConfirmations = 2;
+    uint32 private constant numOfWords = 1;
+    uint16 private constant blockConfirmations = 2;
     address private immutable owner;
     uint256 private immutable timeToMine;
-    uint256 private immutable last_time_stamp; 
+    uint256 private immutable last_time_stamp;
     uint256 private immutable entryfee;
-    address[] private ContributorsAddressArray;
-    address private immutable cordinator_Vrf;
+    address payable[] private contributorsAddressArray;
+    VRFCoordinatorV2Interface private immutable cordinator_Vrf;
     bytes32 private immutable keyHash;
     uint64 private immutable chainId;
-    uint256 private immutable callbackGasLimit;
+    uint32 private immutable callbackGasLimit;
     uint256 private s_requestId = 0;
 
     //Events for storing the data on the chain
@@ -39,13 +42,20 @@ contract lottery {
         uint256 amount,
         address userAddress
     );
-    
-    constructor(uint256 timer, uint256 amount, address vrfCordinator, bytes32 _keyHash, uint64 _chainId, uint256 _callbackGasLimit) {
+
+    constructor(
+        uint256 timer,
+        uint256 amount,
+        address vrfCordinator,
+        bytes32 _keyHash,
+        uint64 _chainId,
+        uint32 _callbackGasLimit
+    ) {
         timeToMine = timer;
         last_time_stamp = block.timestamp;
         owner = msg.sender;
         entryfee = amount;
-        cordinator_Vrf = vrfCordinator;
+        cordinator_Vrf = VRFCoordinatorV2Interface(vrfCordinator);
         keyHash = _keyHash;
         chainId = _chainId;
         callbackGasLimit = _callbackGasLimit;
@@ -56,18 +66,18 @@ contract lottery {
         if (msg.value < entryfee) {
             revert notEnoughAmount();
         } else {
-            ContributorsAddressArray.push(msg.sender);
+            contributorsAddressArray.push(payable(msg.sender));
             emit contributor(funderName, msg.value, msg.sender);
         }
     }
 
     //function announcing the winner of the contract
     function announceLottery() private {
-        if(block.timestamp - last_time_stamp < timeToMine){
+        if (block.timestamp - last_time_stamp < timeToMine) {
             revert lottery_TimeLimitNotExcedeed();
         }
 
-          requestId = cordinator_Vrf.requestRandomWords(
+        uint256 s_requestId = cordinator_Vrf.requestRandomWords(
             keyHash,
             chainId,
             blockConfirmations,
