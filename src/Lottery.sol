@@ -3,8 +3,9 @@
 pragma solidity ^0.8.0;
 import {VRFCoordinatorV2Interface} from "@chainlink/contracts/src/v0.8/vrf/interfaces/VRFCoordinatorV2Interface.sol";
 import {VRFConsumerBaseV2} from "@chainlink/contracts/src/v0.8/vrf/VRFConsumerBaseV2.sol";
+import {AutomationCompatibleInterface} from "@chainlink/contracts/src/v0.8/automation/AutomationCompatible.sol";
 
-contract rafle is VRFConsumerBaseV2 {
+contract rafle is VRFConsumerBaseV2,AutomationCompatibleInterface {
     error rafle_enternance_not_allowed();
     error rafle_time_limit_not_exceeded();
     error rafle_not_enough_participants();
@@ -60,30 +61,24 @@ contract rafle is VRFConsumerBaseV2 {
     // player must be in the contract or there must be enough balance
     // lottery state should be open but not closed.
 
-    function checkUpKeep(
-        bytes calldata /*checkData*/
-    )
-        external
-        view
-        override
-        returns (bool upkeepNeeded, bytes memory /* performData */)
-    {
-        bool enougTimeLimit = (block.timestamp - lastTimeOccurance < interval);
-        bool enoughPlayers = (funders.length < 5);
-        uint256 conStatus = uint256(conState);
-        bool contractNotInProgress = (conStatus == 0);
-        return
-            upkeepNeeded(
-                enougTimeLimit &&
-                enoughPlayers &&
-                conStatus &&
-                contractNotInProgress
-            );
-    }
+   function checkUpkeep(
+    bytes calldata /* checkData */
+)
+    external
+    view
+    override
+    returns (bool upkeepNeeded, bytes memory /* performData */)
+{
+    bool enoughTimeLimit = (block.timestamp - lastTimeOccurance >= interval);
+    bool enoughPlayers = (funders.length >= 5);
+    uint256 conStatus = uint256(conState);
+    bool contractNotInProgress = (conStatus == 0);
 
-    function performUpkeep(
-        bytes calldata /* performData */
-    ) external override {
+    upkeepNeeded = (enoughTimeLimit && enoughPlayers && contractNotInProgress);
+    return (upkeepNeeded, "");
+}
+
+    function performUpkeep(bytes calldata /* performData */) external override {
         conState = contractState.inProgress;
         //first of all we will have to get a random number
         uint256 s_requestId = cordinatorContract.requestRandomWords(
@@ -98,9 +93,7 @@ contract rafle is VRFConsumerBaseV2 {
     }
 
     //CEI
-    function selectWinner() external {
-        
-    }
+    function selectWinner() external {}
 
     //then we will select the winner
 
