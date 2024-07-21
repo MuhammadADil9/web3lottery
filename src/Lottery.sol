@@ -1,107 +1,124 @@
-//SPDX License-Identifier:MIT
-pragma solidity ^0.8.18;
+//SPDX-License-Identifier: MIT
+
+pragma solidity ^0.8.0;
 import {VRFCoordinatorV2Interface} from "@chainlink/contracts/src/v0.8/vrf/interfaces/VRFCoordinatorV2Interface.sol";
 import {VRFConsumerBaseV2} from "@chainlink/contracts/src/v0.8/vrf/VRFConsumerBaseV2.sol";
-/**
- * @title Lottery contract that will declare random winner at random time
- * @author Adil
- * @notice involves advanced soliditiy data types such events, VRF and etc
- */
 
-// creation of a lottery
-// let the user insert the amount in the contract
-// then there will be a check that conract should not populate unless or untill before a specfied time
+contract rafle is VRFConsumerBaseV2 {
+    error rafle_enternance_not_allowed();
+    error rafle_time_limit_not_exceeded();
+    error rafle_not_enough_participants();
+    error rafle_failed_to_transfer_fund();
 
-// constant :- something that we know by default
-// immutable :- something that will not change when the contract will get deployed
+    address payable[] private funders;
+    event fundersInfo(uint256 indexed amount, string name);
 
-contract lottery is VRFConsumerBaseV2 {
-    //importing vrf interface
+    enum contractState {
+        open,
+        closed,
+        inProgress
+    }
 
-    //error
-    error lottery_TimeLimitNotExcedeed();
-    error notEnoughAmount();
-
-    //state variables
+    uint256 private immutable interval;
+    contractState private conState;
+    uint256 private lastTimeOccurance;
+    VRFCoordinatorV2Interface private cordinatorContract;
+    bytes32 private immutable gasLanePrice;
+    uint64 private immutable s_subscriptionId;
+    uint32 private immutable fb_gasLimit;
     uint32 private constant numOfWords = 1;
-    uint16 private constant blockConfirmations = 2;
-    address private immutable owner;
-    uint256 private immutable timeToMine;
-    uint256 private immutable last_time_stamp;
-    uint256 private immutable entryfee;
-    address payable[] private contributorsAddressArray;
-    VRFCoordinatorV2Interface private immutable cordinator_Vrf;
-    bytes32 private immutable keyHash;
-    uint64 private immutable chainId;
-    uint32 private immutable callbackGasLimit;
-    uint256 private s_requestId = 0;
-
-
-    //Events for storing the data on the chain
-    event contributor(
-        string contributorName,
-        uint256 amount,
-        address userAddress
-    );
+    uint16 private constant blockConfirmation = 2;
 
     constructor(
-        uint256 timer,
-        uint256 amount,
-        address vrfCordinator,
-        bytes32 _keyHash,
-        uint64 _chainId,
-        uint32 _callbackGasLimit
-    )VRFConsumerBaseV2(vrfCordinator){
-        timeToMine = timer;
-        last_time_stamp = block.timestamp;
-        owner = msg.sender;
-        entryfee = amount;
-        cordinator_Vrf = VRFCoordinatorV2Interface(vrfCordinator);
-        keyHash = _keyHash;
-        chainId = _chainId;
-        callbackGasLimit = _callbackGasLimit;
+        uint256 _interval,
+        address _cordinator,
+        bytes32 _gasLanePrice,
+        uint64 _s_subscriptionId
+    ) VRFConsumerBaseV2(_cordinator) {
+        interval = _interval;
+        conState = contractState.open;
+        lastTimeOccurance = block.timestamp;
+        cordinatorContract = VRFCoordinatorV2Interface(_cordinator);
+        gasLanePrice = _gasLanePrice;
+        s_subscriptionId = _s_subscriptionId;
     }
 
-    //Payble funcion in which contributors contribute
-    function fundInContract(string memory funderName) external payable {
-        if (msg.value < entryfee) {
-            revert notEnoughAmount();
-        } else {
-            contributorsAddressArray.push(payable(msg.sender));
-            emit contributor(funderName, msg.value, msg.sender);
+    //function for funding the contract;
+    //Following CEI methodology
+    function fund(string memory name) external payable {
+        if (conState != contractState.open) {
+            revert rafle_enternance_not_allowed();
         }
+
+        funders.push(payable(msg.sender));
+        emit fundersInfo(msg.value, name);
     }
 
-    //function announcing the winner of the contract
-    function announceLottery() private {
-        if (block.timestamp - last_time_stamp < timeToMine) {
-            revert lottery_TimeLimitNotExcedeed();
-        }
+    //condition that will make sure when to or when not to trigger the contract.
+    //This will further call perform up keep to make sure everything goes smoothly.
+    // Enough time limit should be there.
+    // player must be in the contract or there must be enough balance
+    // lottery state should be open but not closed.
 
-        uint256 s_requestId = cordinator_Vrf.requestRandomWords(
-            keyHash,
-            chainId,
-            blockConfirmations,
-            callbackGasLimit,
+    function checkUpKeep(
+        bytes calldata /*checkData*/
+    )
+        external
+        view
+        override
+        returns (bool upkeepNeeded, bytes memory /* performData */)
+    {
+        bool enougTimeLimit = (block.timestamp - lastTimeOccurance < interval);
+        bool enoughPlayers = (funders.length < 5);
+        uint256 conStatus = uint256(conState);
+        bool contractNotInProgress = (conStatus == 0);
+        return
+            upkeepNeeded(
+                enougTimeLimit &&
+                enoughPlayers &&
+                conStatus &&
+                contractNotInProgress
+            );
+    }
+
+    function performUpkeep(
+        bytes calldata /* performData */
+    ) external override {
+        conState = contractState.inProgress;
+        //first of all we will have to get a random number
+        uint256 s_requestId = cordinatorContract.requestRandomWords(
+            gasLanePrice,
+            s_subscriptionId,
+            blockConfirmation,
+            fb_gasLimit,
             numOfWords
         );
+
+        // Reuest has been sent to VRF cordinator
     }
 
-    //Consumer base contract
+    //CEI
+    function selectWinner() external {
+        
+    }
+
+    //then we will select the winner
 
     function fulfillRandomWords(
-        uint256 _requestId,
-        uint256[] memory _randomWords
+        uint256 requestId,
+        uint256[] memory randomWords
     ) internal override {
-    }
+        uint256 length = funders.length;
+        uint256 s_randomWords = (randomWords[0] % length);
+        address winner = funders[s_randomWords];
 
-    // getters
+        funders = new address payable[](0);
+        conState = contractState.open;
+        lastTimeOccurance = block.timestamp;
 
-    function getContractBalance() external view returns (uint256) {
-        return address(this).balance;
-    }
-
-    function getOwner() external view returns (address) {
-        return owner;
+        (bool success, ) = winner.call{value: address(this).balance}("");
+        if (!success) {
+            revert rafle_failed_to_transfer_fund();
+        }
     }
 }
