@@ -21,12 +21,12 @@ contract rafle is VRFConsumerBaseV2,AutomationCompatibleInterface {
     }
 
     uint256 private immutable interval;
+    bytes32 private immutable gasLanePrice;
+    uint64 private immutable s_subscriptionId;
     contractState private conState;
     uint256 private lastTimeOccurance;
     VRFCoordinatorV2Interface private cordinatorContract;
-    bytes32 private immutable gasLanePrice;
-    uint64 private immutable s_subscriptionId;
-    uint32 private immutable fb_gasLimit;
+    uint32 private immutable cb_gasLimit;
     uint32 private constant numOfWords = 1;
     uint16 private constant blockConfirmation = 2;
 
@@ -34,7 +34,8 @@ contract rafle is VRFConsumerBaseV2,AutomationCompatibleInterface {
         uint256 _interval,
         address _cordinator,
         bytes32 _gasLanePrice,
-        uint64 _s_subscriptionId
+        uint64 _s_subscriptionId,
+        uint32 callbackGasLimit
     ) VRFConsumerBaseV2(_cordinator) {
         interval = _interval;
         conState = contractState.open;
@@ -42,6 +43,7 @@ contract rafle is VRFConsumerBaseV2,AutomationCompatibleInterface {
         cordinatorContract = VRFCoordinatorV2Interface(_cordinator);
         gasLanePrice = _gasLanePrice;
         s_subscriptionId = _s_subscriptionId;
+        cb_gasLimit = callbackGasLimit;
     }
 
     //function for funding the contract;
@@ -85,7 +87,7 @@ contract rafle is VRFConsumerBaseV2,AutomationCompatibleInterface {
             gasLanePrice,
             s_subscriptionId,
             blockConfirmation,
-            fb_gasLimit,
+            cb_gasLimit,
             numOfWords
         );
 
