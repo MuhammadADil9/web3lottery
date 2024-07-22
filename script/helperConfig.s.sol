@@ -4,9 +4,7 @@ import {Script} from "forge-std/Script.sol";
 import {VRFCoordinatorV2Mock} from "../lib/chainlink-brownie-contracts/contracts/src/v0.8/mocks/VRFCoordinatorV2Mock.sol";
 
 contract helperConfig is Script {
-    VRFCoordinatorV2Mock private vrfcordinatorAnvil;
-
-    struct params {
+    struct constructorParameters {
         uint256 _interval;
         bytes32 gasLanePrice;
         uint64 s_subscriptionId;
@@ -14,7 +12,7 @@ contract helperConfig is Script {
         uint32 cb_gasLimit;
     }
 
-    params public contructor_parameters;
+    constructorParameters public contructor_parameters;
 
     constructor() {
         if (block.chainid == 11155111) {
@@ -24,27 +22,43 @@ contract helperConfig is Script {
         }
     }
 
-    function sapoliaNetwork() public returns (params memory) {
-        params memory temp = params({
-            _interval: 200,
-            gasLanePrice: 0x787d74caea10b2b357790d5b5247c2f63d1d91572a9846f780606e4d953677ae,
-            s_subscriptionId: 0,
-            vrfCordinaor: 0x9DdfaCa8183c41ad55329BdeeD9F6A8d53168B1B,
-            cb_gasLimit: 50000
-        });
-        return temp;
+    function sapoliaNetwork()
+        public
+        pure
+        returns (constructorParameters memory)
+    {
+        return
+            constructorParameters({
+                _interval: 200,
+                gasLanePrice: 0x787d74caea10b2b357790d5b5247c2f63d1d91572a9846f780606e4d953677ae,
+                s_subscriptionId: 0,
+                vrfCordinaor: 0x9DdfaCa8183c41ad55329BdeeD9F6A8d53168B1B,
+                cb_gasLimit: 50000
+            });
     }
 
-    function anvilNetwork() public returns (params memory) {
-        params memory temp = params({
-            _interval: 200,
-            gasLanePrice: 0x787d74caea10b2b357790d5b5247c2f63d1d91572a9846f780606e4d953677ae,
-            s_subscriptionId: 0,
-            vrfCordinaor: address(
-                VRFCoordinatorV2Mock(0x9DdfaCa8183c41ad55329BdeeD9F6A8d53168B1B)
-            ),
-            cb_gasLimit: 500000
-        });
-        return temp;
+    function anvilNetwork() public returns (constructorParameters memory) {
+        if (contructor_parameters.vrfCordinaor != address(0)) {
+            return contructor_parameters;
+        }
+
+        uint96 fee = 0.25 ether;
+        uint96 gasPrice = 1e8;
+
+        vm.startBroadcast();
+        VRFCoordinatorV2Mock vrfcordinatorAnvil = new VRFCoordinatorV2Mock(
+            fee,
+            gasPrice
+        );
+        vm.stopBroadcast();
+
+        return
+            constructorParameters({
+                _interval: 200,
+                gasLanePrice: 0x787d74caea10b2b357790d5b5247c2f63d1d91572a9846f780606e4d953677ae,
+                s_subscriptionId: 0,
+                vrfCordinaor: address(vrfcordinatorAnvil),
+                cb_gasLimit: 500000
+            });
     }
 }
