@@ -14,26 +14,36 @@ contract helperConfig is Script {
         uint32 cb_gasLimit;
     }
 
+    params public contructor_parameters;
+
+    constructor() {
+        if (block.chainid == 11155111) {
+            contructor_parameters = sapoliaNetwork();
+        } else {
+            contructor_parameters = anvilNetwork();
+        }
+    }
+
     function sapoliaNetwork() public returns (params memory) {
         params memory temp = params({
-            _interval: 300,
+            _interval: 200,
             gasLanePrice: 0x787d74caea10b2b357790d5b5247c2f63d1d91572a9846f780606e4d953677ae,
             s_subscriptionId: 0,
             vrfCordinaor: 0x9DdfaCa8183c41ad55329BdeeD9F6A8d53168B1B,
-            cb_gasLimit: 100000
+            cb_gasLimit: 50000
         });
         return temp;
     }
 
     function anvilNetwork() public returns (params memory) {
         params memory temp = params({
-            _interval: 300,
+            _interval: 200,
             gasLanePrice: 0x787d74caea10b2b357790d5b5247c2f63d1d91572a9846f780606e4d953677ae,
             s_subscriptionId: 0,
             vrfCordinaor: address(
                 VRFCoordinatorV2Mock(0x9DdfaCa8183c41ad55329BdeeD9F6A8d53168B1B)
             ),
-            cb_gasLimit: 100000
+            cb_gasLimit: 500000
         });
         return temp;
     }
