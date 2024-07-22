@@ -1,35 +1,40 @@
 //SPDX-License-Identifier: MIT
-
 pragma solidity ^0.8.0;
+
 import {VRFCoordinatorV2Interface} from "@chainlink/contracts/src/v0.8/vrf/interfaces/VRFCoordinatorV2Interface.sol";
 import {VRFConsumerBaseV2} from "@chainlink/contracts/src/v0.8/vrf/VRFConsumerBaseV2.sol";
 import {AutomationCompatibleInterface} from "@chainlink/contracts/src/v0.8/automation/AutomationCompatible.sol";
 
-contract rafle is VRFConsumerBaseV2,AutomationCompatibleInterface {
+contract rafle is VRFConsumerBaseV2, AutomationCompatibleInterface {
+    //errors
     error rafle_enternance_not_allowed();
     error rafle_time_limit_not_exceeded();
     error rafle_not_enough_participants();
     error rafle_failed_to_transfer_fund();
+    error rafle_no_amount_transfered_during_funding();
 
-    address payable[] private funders;
-    event fundersInfo(uint256 indexed amount, string name);
-
+    //type decleration
     enum contractState {
         open,
         closed,
         inProgress
     }
 
+    // state variables
+    contractState private conState;
+    address payable[] private funders;
     uint256 private immutable interval;
     bytes32 private immutable gasLanePrice;
     uint64 private immutable s_subscriptionId;
-    contractState private conState;
     uint256 private lastTimeOccurance;
     VRFCoordinatorV2Interface private cordinatorContract;
     uint32 private immutable cb_gasLimit;
     uint32 private constant numOfWords = 1;
     uint16 private constant blockConfirmation = 2;
 
+    //events
+    event fundersInfo(uint256 indexed amount, string name);
+    event winnerAddress(address indexed winner);
     constructor(
         uint256 _interval,
         address _cordinator,
@@ -48,7 +53,12 @@ contract rafle is VRFConsumerBaseV2,AutomationCompatibleInterface {
 
     //function for funding the contract;
     //Following CEI methodology
+
     function fund(string memory name) external payable {
+        if (msg.value < 0) {
+            revert rafle_no_amount_transfered_during_funding();
+        }
+
         if (conState != contractState.open) {
             revert rafle_enternance_not_allowed();
         }
@@ -63,27 +73,30 @@ contract rafle is VRFConsumerBaseV2,AutomationCompatibleInterface {
     // player must be in the contract or there must be enough balance
     // lottery state should be open but not closed.
 
-   function checkUpkeep(
-    bytes calldata /* checkData */
-)
-    external
-    view
-    override
-    returns (bool upkeepNeeded, bytes memory /* performData */)
-{
-    bool enoughTimeLimit = (block.timestamp - lastTimeOccurance >= interval);
-    bool enoughPlayers = (funders.length >= 5);
-    uint256 conStatus = uint256(conState);
-    bool contractNotInProgress = (conStatus == 0);
+    function checkUpkeep(
+        bytes calldata /* checkData */
+    )
+        external
+        view
+        override
+        returns (bool upkeepNeeded, bytes memory /* performData */)
+    {
+        bool enoughTimeLimit = (block.timestamp - lastTimeOccurance >=
+            interval);
+        bool enoughPlayers = (funders.length >= 5);
+        uint256 conStatus = uint256(conState);
+        bool contractNotInProgress = (conStatus == 0);
 
-    upkeepNeeded = (enoughTimeLimit && enoughPlayers && contractNotInProgress);
-    return (upkeepNeeded, "");
-}
+        upkeepNeeded = (enoughTimeLimit &&
+            enoughPlayers &&
+            contractNotInProgress);
+        return (upkeepNeeded, "");
+    }
 
     function performUpkeep(bytes calldata /* performData */) external override {
         conState = contractState.inProgress;
         //first of all we will have to get a random number
-        uint256 s_requestId = cordinatorContract.requestRandomWords(
+        cordinatorContract.requestRandomWords(
             gasLanePrice,
             s_subscriptionId,
             blockConfirmation,
@@ -115,5 +128,7 @@ contract rafle is VRFConsumerBaseV2,AutomationCompatibleInterface {
         if (!success) {
             revert rafle_failed_to_transfer_fund();
         }
+        emit winnerAddress(winner);
+
     }
 }
