@@ -1,0 +1,12 @@
+where do we use broadcasting ? 
+
+now this is the time to fund the subscription ID
+
+
+for getting up a local subscription id we had to deploy the mockcordinatorV3 contract locally and then call it for getting the subscription ID. 
+now in order to fund that specific local subscription ID we need 
+=> vrf address
+=> sub ID
+=> link token address 
+
+which we will be deploying locally on our chain.

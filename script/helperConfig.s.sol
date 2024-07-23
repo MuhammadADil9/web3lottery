@@ -10,6 +10,7 @@ contract helperConfig is Script {
         uint64 s_subscriptionId;
         address vrfCordinaor;
         uint32 cb_gasLimit;
+        address linkTokensAddress;
     }
 
     constructorParameters public contructor_parameters;
@@ -33,7 +34,8 @@ contract helperConfig is Script {
                 gasLanePrice: 0x787d74caea10b2b357790d5b5247c2f63d1d91572a9846f780606e4d953677ae,
                 s_subscriptionId: 0,
                 vrfCordinaor: 0x9DdfaCa8183c41ad55329BdeeD9F6A8d53168B1B,
-                cb_gasLimit: 50000
+                cb_gasLimit: 50000,
+                linkTokensAddress : 0x779877A7B0D9E8603169DdbD7836e478b4624789
             });
     }
 
@@ -58,7 +60,8 @@ contract helperConfig is Script {
                 gasLanePrice: 0x787d74caea10b2b357790d5b5247c2f63d1d91572a9846f780606e4d953677ae,
                 s_subscriptionId: 0,
                 vrfCordinaor: address(vrfcordinatorAnvil),
-                cb_gasLimit: 500000
+                cb_gasLimit: 500000,
+                linkTokensAddress : 0x779877A7B0D9E8603169DdbD7836e478b4624789
             });
     }
 }

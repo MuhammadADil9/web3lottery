@@ -11,7 +11,7 @@ contract rafle is VRFConsumerBaseV2, AutomationCompatibleInterface {
     error rafle_time_limit_not_exceeded();
     error rafle_not_enough_participants();
     error rafle_failed_to_transfer_fund();
-    error rafle_no_amount_transfered_during_funding();
+    error rafle_insert_minimum_amount_for_entering_into_rafle();
 
     //type decleration
     enum contractState {
@@ -31,10 +31,14 @@ contract rafle is VRFConsumerBaseV2, AutomationCompatibleInterface {
     uint32 private immutable cb_gasLimit;
     uint32 private constant numOfWords = 1;
     uint16 private constant blockConfirmation = 2;
+    uint256 private constant min_amount = 1 ether;
 
     //events
-    event fundersInfo(uint256 indexed amount, string name);
+    event fundersInfo(uint256 indexed amount, string indexed name);
     event winnerAddress(address indexed winner);
+
+
+    //functions
     constructor(
         uint256 _interval,
         address _cordinator,
@@ -55,8 +59,8 @@ contract rafle is VRFConsumerBaseV2, AutomationCompatibleInterface {
     //Following CEI methodology
 
     function fund(string memory name) external payable {
-        if (msg.value < 0) {
-            revert rafle_no_amount_transfered_during_funding();
+        if (msg.value < min_amount) {
+            revert rafle_insert_minimum_amount_for_entering_into_rafle();
         }
 
         if (conState != contractState.open) {
@@ -108,7 +112,7 @@ contract rafle is VRFConsumerBaseV2, AutomationCompatibleInterface {
     }
 
     //CEI
-    function selectWinner() external {}
+    // function selectWinner() external {}
 
     //then we will select the winner
 
@@ -131,4 +135,13 @@ contract rafle is VRFConsumerBaseV2, AutomationCompatibleInterface {
         emit winnerAddress(winner);
 
     }
+
+    function getState () public view returns(contractState){
+        return conState;
+    }
+
+    function getFundersLenth () public view returns(uint256){
+        return funders.length;
+    }
+
 }
