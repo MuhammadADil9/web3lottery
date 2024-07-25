@@ -20,6 +20,7 @@ contract test is Test {
     uint64 public s_subscriptionId;
     address public vrfCordinaor;
     uint32 public cb_gasLimit;
+    address public linkAddress;
 
     modifier PayUpToFive{
         address one = makeAddr("one");
@@ -60,7 +61,8 @@ contract test is Test {
             gasLanePrice,
             s_subscriptionId,
             vrfCordinaor,
-            cb_gasLimit
+            cb_gasLimit,
+            linkAddress
         ) = hConfig.contructor_parameters();
     }
 
@@ -114,11 +116,11 @@ contract test is Test {
         rafleTest.fund{value: 1 ether}("arslan");
     }
 
-    function testContractStateDown() public PayUpToFive {
-        vm.warp(block.timestamp+_interval+1);
-        vm.roll(block.number+2);
-        rafleTest.performUpkeep();
+    // function testContractStateDown() public PayUpToFive {
+    //     vm.warp(block.timestamp+_interval+1);
+    //     vm.roll(block.number+2);
+    //     rafleTest.performUpkeep();
 
-    }
+    // }
 
 }

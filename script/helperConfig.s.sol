@@ -2,8 +2,10 @@
 
 import {Script} from "forge-std/Script.sol";
 import {VRFCoordinatorV2Mock} from "../lib/chainlink-brownie-contracts/contracts/src/v0.8/mocks/VRFCoordinatorV2Mock.sol";
+import {LinkToken} from "../test/mocks/linktoken.sol";
 
 contract helperConfig is Script {
+
     struct constructorParameters {
         uint256 _interval;
         bytes32 gasLanePrice;
@@ -22,6 +24,7 @@ contract helperConfig is Script {
             contructor_parameters = anvilNetwork();
         }
     }
+
 
     function sapoliaNetwork()
         public
@@ -52,6 +55,10 @@ contract helperConfig is Script {
             fee,
             gasPrice
         );
+
+        LinkToken linkContract = new LinkToken();
+
+
         vm.stopBroadcast();
 
         return
@@ -61,7 +68,7 @@ contract helperConfig is Script {
                 s_subscriptionId: 0,
                 vrfCordinaor: address(vrfcordinatorAnvil),
                 cb_gasLimit: 500000,
-                linkTokensAddress : 0x779877A7B0D9E8603169DdbD7836e478b4624789
+                linkTokensAddress : address(linkContract)
             });
     }
 }

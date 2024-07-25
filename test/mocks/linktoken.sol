@@ -32,7 +32,6 @@ contract LinkToken is ERC20 {
         uint256 _value,
         bytes memory _data
     ) public returns (bool success) {
-        _transfer(msg.sender, _to, _value);
         emit Transfer(msg.sender, _to, _value, _data);
         if (isContract(_to)) {
             contractFallback(_to, _value, _data);

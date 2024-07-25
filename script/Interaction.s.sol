@@ -6,7 +6,8 @@ import {VRFCoordinatorV2Mock} from "../lib/chainlink-brownie-contracts/contracts
 import {Script, console} from "forge-std/Script.sol";
 
 
-contract interaction is Script {
+contract createSubscription is Script {
+
     function createLocalConfig() public returns (uint64) {
         helperConfig subscription_helper_config = new helperConfig();
         (
@@ -39,13 +40,20 @@ contract fundSubscription {
     function fundTheSubscription() public {
         helperConfig subscription_helper_config = new helperConfig();
         (
-            ,
-            ,
-            uint64 s_subscriptionId,
-            address vrfCordinaor,
-            ,
-
+        ,
+        ,
+        uint64 s_subscriptionId,
+        address vrfCordinaor,
+        ,
+        address linkTokensAddress
         ) = subscription_helper_config.contructor_parameters();
+
+        fundingSubscription(s_subscriptionId,vrfCordinaor,linkTokensAddress);
+
+    }
+
+    function fundingSubscription(uint64 _s_subscriptionId, address _vrfCordinaor,address _linkTokensAddress ) public {
+        
     }
 
     function run() external {
