@@ -10,3 +10,11 @@ now in order to fund that specific local subscription ID we need
 => link token address 
 
 which we will be deploying locally on our chain.
+
+
+> if we didn't return the helperconfig contract from run function function of deployment, were we not able to use the same parameters during the test ?
+
+
+>For creating a subscription we need [ CREATE SUBSCRIPTION ]
+
+> For funding through on chain

@@ -1,9 +1,12 @@
 //SPDX-License-Identifier:MIT
 
 import {rafle} from "../src/Lottery.sol";
-import {Script} from "forge-std/Script.sol";
+import {Script, console} from "forge-std/Script.sol";
 import {helperConfig} from "./helperConfig.s.sol";
-import {interaction} from "./Interaction.s.sol";
+import {createSubscription, fundSubscription, addConsumer} from "./Interaction.s.sol";
+import {LinkToken} from "../test/mocks/linktoken.sol";
+import {DevOpsTools} from "lib/foundry-devops/src/DevOpsTools.sol";
+import {rafle} from "../src/Lottery.sol";
 
 contract deploy is Script {
     rafle private rafleContract;
@@ -16,12 +19,20 @@ contract deploy is Script {
             bytes32 gasLanePrice,
             uint64 s_subscriptionId,
             address vrfCordinaor,
-            uint32 cb_gasLimit
+            uint32 cb_gasLimit,
+            address linkTokensAddress
         ) = hConfig.contructor_parameters();
 
-        if(s_subscriptionId == 0){
-        interaction  getChainID = new interaction();
-        s_subscriptionId = getChainID.getSubscription();
+        if (s_subscriptionId == 0) {
+            createSubscription subcriptionCreationContract = new createSubscription();
+            s_subscriptionId = subcriptionCreationContract.creatSubscription(
+                vrfCordinaor
+            );
+
+            //Now Its time to fund the subscription ID
+            //Eveb a ID that is created online/UI can be funded programmatiaclly
+            fundSubscription subscribFund = new fundSubscription();
+            subscribFund.fundingSubscription(s_subscriptionId, vrfCordinaor);
         }
 
         vm.startBroadcast();
@@ -32,8 +43,14 @@ contract deploy is Script {
             s_subscriptionId,
             cb_gasLimit
         );
-        
         vm.stopBroadcast();
-        return (rafleContract,hConfig);
+        addConsumer _addConsumer = new addConsumer();
+        _addConsumer.addConsumerFinal(
+            vrfCordinaor,
+            s_subscriptionId,
+            address(rafleContract)
+        );
+
+        return (rafleContract, hConfig);
     }
 }

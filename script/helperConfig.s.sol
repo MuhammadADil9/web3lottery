@@ -4,6 +4,8 @@ import {Script} from "forge-std/Script.sol";
 import {VRFCoordinatorV2Mock} from "../lib/chainlink-brownie-contracts/contracts/src/v0.8/mocks/VRFCoordinatorV2Mock.sol";
 import {LinkToken} from "../test/mocks/linktoken.sol";
 
+
+
 contract helperConfig is Script {
 
     struct constructorParameters {
@@ -47,6 +49,8 @@ contract helperConfig is Script {
             return contructor_parameters;
         }
 
+        //Why ?
+        //In order to create a cordinator locally we need price, gasprice
         uint96 fee = 0.25 ether;
         uint96 gasPrice = 1e8;
 
@@ -68,7 +72,6 @@ contract helperConfig is Script {
                 s_subscriptionId: 0,
                 vrfCordinaor: address(vrfcordinatorAnvil),
                 cb_gasLimit: 500000,
-                linkTokensAddress : address(linkContract)
-            });
+                linkTokensAddress : address(linkContract)            });
     }
 }
