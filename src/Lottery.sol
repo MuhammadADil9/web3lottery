@@ -12,6 +12,8 @@ contract rafle is VRFConsumerBaseV2, AutomationCompatibleInterface {
     error rafle_not_enough_participants();
     error rafle_failed_to_transfer_fund();
     error rafle_insert_minimum_amount_for_entering_into_rafle();
+    error rafle_checkUpKeepFailed();
+    error rafle_contractStateIsNotOpen();
 
     //type decleration
     enum contractState {
@@ -36,7 +38,7 @@ contract rafle is VRFConsumerBaseV2, AutomationCompatibleInterface {
     //events
     event fundersInfo(uint256 indexed amount, string indexed name);
     event winnerAddress(address indexed winner);
-
+    
 
     //functions
     constructor(
@@ -78,26 +80,42 @@ contract rafle is VRFConsumerBaseV2, AutomationCompatibleInterface {
     // lottery state should be open but not closed.
 
     function checkUpkeep(
-        bytes calldata /* checkData */
+        bytes memory /* checkData */
     )
-        external
+        public
         view
         override
         returns (bool upkeepNeeded, bytes memory /* performData */)
     {
         bool enoughTimeLimit = (block.timestamp - lastTimeOccurance >=
             interval);
+        if (!enoughTimeLimit) {
+            revert rafle_time_limit_not_exceeded();
+        }
+        
         bool enoughPlayers = (funders.length >= 5);
+
+        if(!enoughPlayers){
+            revert rafle_not_enough_participants();
+        }
+
         uint256 conStatus = uint256(conState);
-        bool contractNotInProgress = (conStatus == 0);
+        bool contractCurrentState = (conStatus == 0);
+        if(!contractCurrentState){
+            revert rafle_contractStateIsNotOpen();
+        }
 
         upkeepNeeded = (enoughTimeLimit &&
             enoughPlayers &&
-            contractNotInProgress);
-        return (upkeepNeeded, "");
+            contractCurrentState);
+        return (upkeepNeeded, "0x0");
     }
 
-    function performUpkeep(bytes calldata /* performData */) external override {
+    function performUpkeep(bytes memory /* performData */) external override {
+        (bool checkUpKeep, ) = checkUpkeep("");
+        if (!checkUpKeep) {
+            revert rafle_checkUpKeepFailed();
+        }
         conState = contractState.inProgress;
         //first of all we will have to get a random number
         cordinatorContract.requestRandomWords(
@@ -128,20 +146,29 @@ contract rafle is VRFConsumerBaseV2, AutomationCompatibleInterface {
         conState = contractState.open;
         lastTimeOccurance = block.timestamp;
 
-        (bool success, ) = winner.call{value: address(this).balance}("");
+        uint256 profit = funders.length;
+        uint256 balance = address(this).balance - profit;
+
+        (bool success, ) = winner.call{value: balance}("");
         if (!success) {
             revert rafle_failed_to_transfer_fund();
         }
         emit winnerAddress(winner);
-
     }
 
-    function getState () public view returns(contractState){
+    function getState() public view returns (contractState) {
         return conState;
     }
 
-    function getFundersLenth () public view returns(uint256){
+    function getFundersLenth() public view returns (uint256) {
         return funders.length;
     }
 
+    function turnOfState() external {
+        conState = contractState.inProgress;
+    }
+
+    function getContractBalance() external view returns (uint256) {
+        return address(this).balance;
+    }
 }
