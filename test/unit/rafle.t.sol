@@ -8,6 +8,7 @@ import {rafle} from "../../src/Lottery.sol";
 import {helperConfig} from "../../script/helperConfig.s.sol";
 import {Vm} from "forge-std/Vm.sol";
 import {VRFCoordinatorV2Mock} from "lib/chainlink-brownie-contracts/contracts/src/v0.8/mocks/VRFCoordinatorV2Mock.sol";
+import {acceptor} from "./acceptorContract.sol";
 
 contract test is Test {
     event fundersInfo(uint256 indexed amount, string indexed name);
@@ -23,6 +24,7 @@ contract test is Test {
     address public vrfCordinaor;
     uint32 public cb_gasLimit;
     address public linkAddress;
+    acceptor public acp;
 
     modifier PayUpToFive() {
         address one = makeAddr("one");
@@ -31,11 +33,11 @@ contract test is Test {
         address four = makeAddr("four");
         address five = makeAddr("five");
 
-        vm.deal(one, 10 ether);
-        vm.deal(two, 10 ether);
-        vm.deal(three, 10 ether);
-        vm.deal(four, 10 ether);
-        vm.deal(five, 10 ether);
+        vm.deal(one, 5 ether);
+        vm.deal(two, 5 ether);
+        vm.deal(three, 5 ether);
+        vm.deal(four, 5 ether);
+        vm.deal(five, 5 ether);
 
         vm.prank(one);
         rafleTest.fund{value: 5 ether}("a");
@@ -57,7 +59,7 @@ contract test is Test {
     function setUp() public {
         deployTest = new deploy();
         (rafleTest, hConfig) = deployTest.run();
-
+        acp = new acceptor();
         (
             _interval,
             gasLanePrice,
@@ -185,10 +187,11 @@ contract test is Test {
         Vm.Log[] memory logs = vm.getRecordedLogs();
         
         bytes32 data = logs[1].topics[0];
-        uint256  number  =  rafleTest.randomNumber(); 
+
+        //type casting bytes into uint256
         console.log(uint256(data));
         assert(uint256(data) > 0);
-        assert(number != 0);
+        assert(rafleTest.randomNumber() != 0);
     } 
 
     // Random words will fail because performup keep is not called
@@ -198,4 +201,57 @@ contract test is Test {
         VRFCoordinatorV2Mock(vrfCordinaor).fulfillRandomWords(_id,address(rafleTest));
     }
     
+    // Massive test < Beginning to End >
+
+
+function testCompleteSmartContract() public PayUpToFive {
+
+    uint256 calculation = 5*5-5;
+    uint256 prize = calculation * 1 ether;
+    console.log("Expected Prize");
+    console.log(prize);
+
+    //state of the smart contract should be open 
+    uint256 stateOfSmartContract = uint256(rafleTest.getState());
+    assert(stateOfSmartContract == 0);
+
+    // //balance of the contract should be zero intially (remove payUpToFive)
+    // assertEq(rafleTest.getContractBalance(),0);
+    // }
+
+    //Balance of the winner should be equalvant to zero
+    assertEq(rafleTest.getWinnerBalanc(), 0);
+
+    //balance of the contract should not be zero as soon as people participates in it.
+    assert(rafleTest.getContractBalance() == 25 ether);
+
+    //moving the timestamp forward to make the [ checkupkeep ] true
+    vm.warp(block.timestamp+_interval+2);
+
+
+    // calling perform up keep
+    rafleTest.performUpkeep("");
+
+    //Balance that will transferred after deucting the lottery fee/profit
+    // console.log("Balance to transfer");
+    // console.log(rafleTest.balance());
+
+
+
+    //balance of the contract
+    // console.log("Contract Balance");
+    // console.log(rafleTest.getContractBalance());
+
+    // calling the fulfill random function on the behalf of the vrf cordinator
+    VRFCoordinatorV2Mock(vrfCordinaor).fulfillRandomWords(rafleTest.randomNumber(),address(rafleTest));
+
+
+    // console.log("Winner Balance");
+    // console.log(rafleTest.getWinnerBalanc());
+    // Balance of the winner should be equalant to prize
+
+    assert(rafleTest.getWinnerBalanc() == prize);
+    assert(rafleTest.getFundersLenth() == 0);
+
+    }
 }

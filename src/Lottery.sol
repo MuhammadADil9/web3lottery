@@ -35,12 +35,14 @@ contract rafle is VRFConsumerBaseV2, AutomationCompatibleInterface {
     uint16 private constant blockConfirmation = 2;
     uint256 private constant min_amount = 1 ether;
     uint256 public randomNumber;
+    address public winner;
+    uint256 public balance;
+
     //events
     event fundersInfo(uint256 indexed amount, string indexed name);
     event winnerAddress(address indexed winner);
     event randomNumberEvent(uint256 indexedNumber);
 
-    
     //functions
     constructor(
         uint256 _interval,
@@ -57,6 +59,7 @@ contract rafle is VRFConsumerBaseV2, AutomationCompatibleInterface {
         s_subscriptionId = _s_subscriptionId;
         cb_gasLimit = callbackGasLimit;
         randomNumber = 0;
+        balance = 0;
     }
 
     //function for funding the contract;
@@ -94,16 +97,16 @@ contract rafle is VRFConsumerBaseV2, AutomationCompatibleInterface {
         if (!enoughTimeLimit) {
             revert rafle_time_limit_not_exceeded();
         }
-        
+
         bool enoughPlayers = (funders.length >= 5);
 
-        if(!enoughPlayers){
+        if (!enoughPlayers) {
             revert rafle_not_enough_participants();
         }
 
         uint256 conStatus = uint256(conState);
         bool contractCurrentState = (conStatus == 0);
-        if(!contractCurrentState){
+        if (!contractCurrentState) {
             revert rafle_contractStateIsNotOpen();
         }
 
@@ -125,6 +128,10 @@ contract rafle is VRFConsumerBaseV2, AutomationCompatibleInterface {
         );
         emit randomNumberEvent(uint256(request));
         randomNumber = request;
+
+        uint256 totalProfit = funders.length * 1 ether;
+        balance = address(this).balance - totalProfit;
+
         // Reuest has been sent to VRF cordinator
     }
 
@@ -139,14 +146,15 @@ contract rafle is VRFConsumerBaseV2, AutomationCompatibleInterface {
     ) internal override {
         uint256 length = funders.length;
         uint256 s_randomWords = (randomWords[0] % length);
-        address winner = funders[s_randomWords];
+        
+        if(winner == address(0)){
+        winner = funders[s_randomWords];
+        }
+        // winner = funders[s_randomWords];
 
         funders = new address payable[](0);
         conState = contractState.open;
         lastTimeOccurance = block.timestamp;
-
-        uint256 profit = funders.length;
-        uint256 balance = address(this).balance - profit;
 
         (bool success, ) = winner.call{value: balance}("");
         if (!success) {
@@ -155,6 +163,7 @@ contract rafle is VRFConsumerBaseV2, AutomationCompatibleInterface {
         emit winnerAddress(winner);
     }
 
+    // Getters Function State
     function getState() public view returns (contractState) {
         return conState;
     }
@@ -170,4 +179,22 @@ contract rafle is VRFConsumerBaseV2, AutomationCompatibleInterface {
     function getContractBalance() external view returns (uint256) {
         return address(this).balance;
     }
+
+    function getWinnerBalanc() external view returns (uint256) {
+        return address(winner).balance;
+    }
+
+
+
+
+
+    // Tester Functions 
+
+    function setWinner(address xyz) external {
+        winner = xyz;
+    }
+
+    
+
+    
 }
