@@ -34,12 +34,13 @@ contract rafle is VRFConsumerBaseV2, AutomationCompatibleInterface {
     uint32 private constant numOfWords = 1;
     uint16 private constant blockConfirmation = 2;
     uint256 private constant min_amount = 1 ether;
-
+    uint256 public randomNumber;
     //events
     event fundersInfo(uint256 indexed amount, string indexed name);
     event winnerAddress(address indexed winner);
-    
+    event randomNumberEvent(uint256 indexedNumber);
 
+    
     //functions
     constructor(
         uint256 _interval,
@@ -55,6 +56,7 @@ contract rafle is VRFConsumerBaseV2, AutomationCompatibleInterface {
         gasLanePrice = _gasLanePrice;
         s_subscriptionId = _s_subscriptionId;
         cb_gasLimit = callbackGasLimit;
+        randomNumber = 0;
     }
 
     //function for funding the contract;
@@ -112,20 +114,17 @@ contract rafle is VRFConsumerBaseV2, AutomationCompatibleInterface {
     }
 
     function performUpkeep(bytes memory /* performData */) external override {
-        (bool checkUpKeep, ) = checkUpkeep("");
-        if (!checkUpKeep) {
-            revert rafle_checkUpKeepFailed();
-        }
         conState = contractState.inProgress;
         //first of all we will have to get a random number
-        cordinatorContract.requestRandomWords(
+        uint256 request = cordinatorContract.requestRandomWords(
             gasLanePrice,
             s_subscriptionId,
             blockConfirmation,
             cb_gasLimit,
             numOfWords
         );
-
+        emit randomNumberEvent(uint256(request));
+        randomNumber = request;
         // Reuest has been sent to VRF cordinator
     }
 

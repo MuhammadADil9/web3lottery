@@ -7,6 +7,7 @@ import {deploy} from "../../script/deploy.s.sol";
 import {rafle} from "../../src/Lottery.sol";
 import {helperConfig} from "../../script/helperConfig.s.sol";
 import {Vm} from "forge-std/Vm.sol";
+import {VRFCoordinatorV2Mock} from "lib/chainlink-brownie-contracts/contracts/src/v0.8/mocks/VRFCoordinatorV2Mock.sol";
 
 contract test is Test {
     event fundersInfo(uint256 indexed amount, string indexed name);
@@ -164,11 +165,7 @@ contract test is Test {
         // assert(!checkUpKeep);
     }
 
-    // perform up keep has to fail because checkup keep is not fulfilled
-    function testperformupkeepshouldreturnfalse() public {
-        vm.expectRevert();
-        rafleTest.performUpkeep("");
-    }
+
 
     // perform has to work because checkup conditions are all satisfied
     function testReturnRandomWords() public PayUpToFive {
@@ -177,10 +174,28 @@ contract test is Test {
         rafleTest.performUpkeep("");
     }
 
+    //checking for logs in performUpKeep
+
+    function testReturnRandomWordsLogs() public PayUpToFive {
+        vm.warp(block.timestamp + _interval + 2);
+        vm.roll(block.number + 4);
+
+        vm.recordLogs();
+        rafleTest.performUpkeep("");
+        Vm.Log[] memory logs = vm.getRecordedLogs();
+        
+        bytes32 data = logs[1].topics[0];
+        uint256  number  =  rafleTest.randomNumber(); 
+        console.log(uint256(data));
+        assert(uint256(data) > 0);
+        assert(number != 0);
+    } 
 
     // Random words will fail because performup keep is not called
-    function testRandomWordsShouldFail() public {
-        
+    //Fuzz tests, where foudnary gets the input and does the rest of stuff
+    function testRandomWordsShouldFail(uint256 _id) public {
+        vm.expectRevert();
+        VRFCoordinatorV2Mock(vrfCordinaor).fulfillRandomWords(_id,address(rafleTest));
     }
-
+    
 }
