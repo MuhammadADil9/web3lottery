@@ -3,11 +3,10 @@
 import {Script} from "forge-std/Script.sol";
 import {VRFCoordinatorV2Mock} from "../lib/chainlink-brownie-contracts/contracts/src/v0.8/mocks/VRFCoordinatorV2Mock.sol";
 import {LinkToken} from "../test/mocks/linktoken.sol";
-
+import {Vm} from "forge-std/Vm.sol";
 
 
 contract helperConfig is Script {
-
     struct constructorParameters {
         uint256 _interval;
         bytes32 gasLanePrice;
@@ -15,6 +14,7 @@ contract helperConfig is Script {
         address vrfCordinaor;
         uint32 cb_gasLimit;
         address linkTokensAddress;
+        uint256 key; 
     }
 
     constructorParameters public contructor_parameters;
@@ -27,10 +27,8 @@ contract helperConfig is Script {
         }
     }
 
-
     function sapoliaNetwork()
         public
-        pure
         returns (constructorParameters memory)
     {
         return
@@ -40,7 +38,8 @@ contract helperConfig is Script {
                 s_subscriptionId: 0,
                 vrfCordinaor: 0x9DdfaCa8183c41ad55329BdeeD9F6A8d53168B1B,
                 cb_gasLimit: 50000,
-                linkTokensAddress : 0x779877A7B0D9E8603169DdbD7836e478b4624789
+                linkTokensAddress: 0x779877A7B0D9E8603169DdbD7836e478b4624789,
+                key:vm.envUint("key")
             });
     }
 
@@ -49,6 +48,7 @@ contract helperConfig is Script {
             return contructor_parameters;
         }
 
+        uint256 defaultAddress = 0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80;
         //Why ?
         //In order to create a cordinator locally we need price, gasprice
         uint96 fee = 0.25 ether;
@@ -62,7 +62,6 @@ contract helperConfig is Script {
 
         LinkToken linkContract = new LinkToken();
 
-
         vm.stopBroadcast();
 
         return
@@ -72,6 +71,8 @@ contract helperConfig is Script {
                 s_subscriptionId: 0,
                 vrfCordinaor: address(vrfcordinatorAnvil),
                 cb_gasLimit: 500000,
-                linkTokensAddress : address(linkContract)            });
+                linkTokensAddress: address(linkContract),
+                key : defaultAddress
+            });
     }
 }

@@ -11,14 +11,15 @@ import {rafle} from "../src/Lottery.sol";
 contract createSubscription is Script {
     function createConfiguration() public returns (uint64) {
         helperConfig subscription_helper_config = new helperConfig();
-        (, , , address vrfCordinaor, , ) = subscription_helper_config
+        (, , , address vrfCordinaor, ,,uint256 key ) = subscription_helper_config
             .contructor_parameters();
-        return creatSubscription(vrfCordinaor);
+        return creatSubscription(vrfCordinaor,key);
     }
 
-    function creatSubscription(address vfrContract) public returns (uint64) {
+
+    function creatSubscription(address vfrContract, uint256 key) public returns (uint64) {
         console.log("Creating subscription");
-        vm.startBroadcast();
+        vm.startBroadcast(key);
         uint64 s_id = VRFCoordinatorV2Mock(vfrContract).createSubscription();
         vm.stopBroadcast();
         console.log("Subscription Created");
@@ -42,20 +43,38 @@ contract fundSubscription is Script {
             address vrfCordinaor,
             ,
             address linkTokensAddress
+            ,
+            uint256 key
         ) = subscription_helper_config.contructor_parameters();
-        fundingSubscription(s_subscriptionId, vrfCordinaor);
+        fundingSubscription(s_subscriptionId, vrfCordinaor, linkTokensAddress,key);
     }
 
     function fundingSubscription(
         uint64 _s_subscriptionId,
-        address _vrfCordinaor
+        address _vrfCordinaor,
+        address tokens,
+        uint256 key
     ) public {
-        vm.startBroadcast();
-        VRFCoordinatorV2Mock(_vrfCordinaor).fundSubscription(
-            _s_subscriptionId,
-            amount
-        );
-        vm.stopBroadcast();
+        if (block.chainid == 31337) {
+            console.log("Funding the subscription");
+            vm.startBroadcast(key);
+            VRFCoordinatorV2Mock(_vrfCordinaor).fundSubscription(
+                _s_subscriptionId,
+                amount
+            );
+            vm.stopBroadcast();
+            console.log("Subscription funded");
+        } else {
+            console.log("Funding the subscription");
+            vm.startBroadcast(key);
+            LinkToken(tokens).transferAndCall(
+                address(_vrfCordinaor),
+                5,
+                abi.encode(_s_subscriptionId)
+            );
+            vm.startBroadcast();
+            console.log("Subscription funded");
+        }
     }
 
     function run() external {
@@ -72,20 +91,24 @@ contract addConsumer is Script {
             uint64 s_subscriptionId,
             address vrfCordinaor,
             ,
-
+            ,
+            uint256 ownerKey
         ) = subscription_helper_config.contructor_parameters();
 
-        addConsumerFinal(vrfCordinaor, s_subscriptionId, _consumer);
+        addConsumerFinal(vrfCordinaor, s_subscriptionId, _consumer,ownerKey);
     }
 
     function addConsumerFinal(
         address vrfCordinator,
         uint64 s_subID,
-        address consumer
+        address consumer,
+        uint256 addr
     ) public {
-        vm.startBroadcast();
+        console.log("adding the consumer");
+        vm.startBroadcast(addr);
         VRFCoordinatorV2Mock(vrfCordinator).addConsumer(s_subID, consumer);
         vm.stopBroadcast();
+        console.log("consumer added");
     }
 
     function run() external {

@@ -8,7 +8,7 @@ import {rafle} from "../../src/Lottery.sol";
 import {helperConfig} from "../../script/helperConfig.s.sol";
 import {Vm} from "forge-std/Vm.sol";
 import {VRFCoordinatorV2Mock} from "lib/chainlink-brownie-contracts/contracts/src/v0.8/mocks/VRFCoordinatorV2Mock.sol";
-import {acceptor} from "./acceptorContract.sol";
+// import {acceptor} from "./acceptorContract.sol";
 
 contract test is Test {
     event fundersInfo(uint256 indexed amount, string indexed name);
@@ -24,7 +24,15 @@ contract test is Test {
     address public vrfCordinaor;
     uint32 public cb_gasLimit;
     address public linkAddress;
-    acceptor public acp;
+    uint256 public addr;
+    // acceptor public acp;
+
+    modifier skipTesting(){
+        if(block.chainid != 31337){
+            return;
+        }
+        _;
+    }
 
     modifier PayUpToFive() {
         address one = makeAddr("one");
@@ -59,14 +67,15 @@ contract test is Test {
     function setUp() public {
         deployTest = new deploy();
         (rafleTest, hConfig) = deployTest.run();
-        acp = new acceptor();
+        // acp = new acceptor();
         (
             _interval,
             gasLanePrice,
             s_subscriptionId,
             vrfCordinaor,
             cb_gasLimit,
-            linkAddress
+            linkAddress,
+            addr
         ) = hConfig.contructor_parameters();
     }
 
@@ -196,7 +205,7 @@ contract test is Test {
 
     // Random words will fail because performup keep is not called
     //Fuzz tests, where foudnary gets the input and does the rest of stuff
-    function testRandomWordsShouldFail(uint256 _id) public {
+    function testRandomWordsShouldFail(uint256 _id) public skipTesting{
         vm.expectRevert();
         VRFCoordinatorV2Mock(vrfCordinaor).fulfillRandomWords(_id,address(rafleTest));
     }
@@ -204,7 +213,7 @@ contract test is Test {
     // Massive test < Beginning to End >
 
 
-function testCompleteSmartContract() public PayUpToFive {
+function testCompleteSmartContract() public PayUpToFive skipTesting {
 
     uint256 calculation = 5*5-5;
     uint256 prize = calculation * 1 ether;

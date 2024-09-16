@@ -20,20 +20,26 @@ contract deploy is Script {
             uint64 s_subscriptionId,
             address vrfCordinaor,
             uint32 cb_gasLimit,
-            address linkTokensAddress
+            address linkTokensAddress,
+            uint256 key
         ) = hConfig.contructor_parameters();
 
         if (s_subscriptionId == 0) {
             createSubscription subcriptionCreationContract = new createSubscription();
             s_subscriptionId = subcriptionCreationContract.creatSubscription(
-                vrfCordinaor
+                vrfCordinaor,
+                key
             );
-
-            //Now Its time to fund the subscription ID
-            //Eveb a ID that is created online/UI can be funded programmatiaclly
-            fundSubscription subscribFund = new fundSubscription();
-            subscribFund.fundingSubscription(s_subscriptionId, vrfCordinaor);
         }
+        //Now Its time to fund the subscription ID
+        //Eveb a ID that is created online/UI can be funded programmatiaclly
+        fundSubscription subscribFund = new fundSubscription();
+        subscribFund.fundingSubscription(
+            s_subscriptionId,
+            vrfCordinaor,
+            linkTokensAddress,
+            key
+        );
 
         vm.startBroadcast();
         rafleContract = new rafle(
@@ -48,7 +54,8 @@ contract deploy is Script {
         _addConsumer.addConsumerFinal(
             vrfCordinaor,
             s_subscriptionId,
-            address(rafleContract)
+            address(rafleContract),
+            key
         );
 
         return (rafleContract, hConfig);

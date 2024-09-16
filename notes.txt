@@ -18,3 +18,6 @@ which we will be deploying locally on our chain.
 >For creating a subscription we need [ CREATE SUBSCRIPTION ]
 
 > For funding through on chain
+
+//how to listen for the evetns 
+//how to impose the logic based on listening the evetns
