@@ -1,0 +1,20 @@
+layout of a file
+
+> versioning
+> imports
+> errors
+> libraries, interface & contracts
+> type decleration
+> state variables
+> evetns
+> modifiers
+> functions 
+
+> constructor function
+> receive function ( if existed )
+> fallback function ( if existed )
+> external 
+> public 
+> internal
+> private 
+> view  & pure
