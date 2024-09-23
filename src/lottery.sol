@@ -1,8 +1,11 @@
 // SPDX-License-Identifier: MIT
 
 /* Imports */
+import {LinkTokenInterface} from "@chainlink/contracts/src/v0.8/shared/interfaces/LinkTokenInterface.sol";
+import {IVRFCoordinatorV2Plus} from "@chainlink/contracts/src/v0.8/vrf/dev/interfaces/IVRFCoordinatorV2Plus.sol";
 import {VRFConsumerBaseV2Plus} from "@chainlink/contracts/src/v0.8/vrf/dev/VRFConsumerBaseV2Plus.sol";
 import {VRFV2PlusClient} from "@chainlink/contracts/src/v0.8/vrf/dev/libraries/VRFV2PlusClient.sol";
+
 
 /* Errors */
 error lottery_timeNotPassed();
@@ -77,7 +80,7 @@ contract lottery is VRFConsumerBaseV2Plus {
             )
         });
 
-        // uint256 requestId = s_vrfCoordinator.requestRandomWords(request);
+        uint256 requestId = s_vrfCoordinator.requestRandomWords(request);
     }
 
     /* Function to handle the fulfillment of random words */

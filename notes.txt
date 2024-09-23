@@ -1,3 +1,31 @@
+cordinator address 
+0x9DdfaCa8183c41ad55329BdeeD9F6A8d53168B1B
+keyhash 
+0x787d74caea10b2b357790d5b5247c2f63d1d91572a9846f780606e4d953677ae
+link token = 0x779877A7B0D9E8603169DdbD7836e478b4624789
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 where do we use broadcasting ? 
 
 now this is the time to fund the subscription ID
@@ -21,3 +49,5 @@ which we will be deploying locally on our chain.
 
 //how to listen for the evetns 
 //how to impose the logic based on listening the evetns
+
+
