@@ -1,3 +1,33 @@
+if we create struct of our own, will we be able to pass it down in cordinator function ? 
+who is inheriting what and how is that happening ? 
+revert with or not with any array
+
+
+override & virtual
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 cordinator address 
 0x9DdfaCa8183c41ad55329BdeeD9F6A8d53168B1B
 keyhash 
@@ -49,5 +79,16 @@ which we will be deploying locally on our chain.
 
 //how to listen for the evetns 
 //how to impose the logic based on listening the evetns
+
+
+
+
+
+
+
+
+
+
+
 
 
