@@ -3,7 +3,7 @@ layout of a file
 > versioning
 > imports
 > errors
-> libraries, interface & contracts
+> libraries, interface & contracts ( beginning )
 > type decleration
 > state variables
 > evetns

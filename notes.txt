@@ -1,9 +1,15 @@
-if we create struct of our own, will we be able to pass it down in cordinator function ? 
-who is inheriting what and how is that happening ? 
+if we create struct of our own, will we be able to pass it down in cordinator function ?  nope it will not accept any 
+other struct then defined in the parameters
+
+who is inheriting what and how is that happening ? internal means this and any contract inherting from the contract and not outsider
+
 revert with or not with any array
 
 
 override & virtual
+
+revert("The function call doesn't exist")
+revert error(one,two,three)
 
 
 

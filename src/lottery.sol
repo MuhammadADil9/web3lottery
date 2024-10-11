@@ -1,10 +1,16 @@
 // SPDX-License-Identifier: MIT
+pragma solidity ^0.8.10;
 
 /* Imports */
+
 import {LinkTokenInterface} from "@chainlink/contracts/src/v0.8/shared/interfaces/LinkTokenInterface.sol";
+/* Contract for VRF functionality  */
 import {IVRFCoordinatorV2Plus} from "@chainlink/contracts/src/v0.8/vrf/dev/interfaces/IVRFCoordinatorV2Plus.sol";
 import {VRFConsumerBaseV2Plus} from "@chainlink/contracts/src/v0.8/vrf/dev/VRFConsumerBaseV2Plus.sol";
 import {VRFV2PlusClient} from "@chainlink/contracts/src/v0.8/vrf/dev/libraries/VRFV2PlusClient.sol";
+/* Contract for automation functinality */
+import {AutomationCompatibleInterface} from "@chainlink/contracts/src/v0.8/automation/AutomationCompatible.sol";
+
 
 /* Errors */
 error lottery_timeNotPassed();
@@ -18,27 +24,32 @@ error lottery_enteranceNotAllowed();
  * @dev Implementation of VRF and Keepers for randomness and automation respectively.
  */
 
+
+
 /* Contract */
-
 contract lottery is VRFConsumerBaseV2Plus {
-
+   
     /*Type Declaration*/
-    enum LotteryState{open,close}
+    enum LotteryState {
+        open,
+        close
+    }
 
     /* State variables */
     uint256 private immutable i_enteranceFee;
     address private immutable i_owner;
     uint256 private immutable i_timeLimit;
     uint256 private immutable i_lastTimeLotteryStarted;
-    address private winnerAddress;             
+    address private winnerAddress;
     LotteryState private s_state = LotteryState.open;
-
+    // uint256 private counter;
     /* Request Parameters */
     uint32 private immutable i_numWords;
     uint32 private immutable i_callbackGasLimit;
     bytes32 private immutable i_keyHash;
     uint16 private constant REQUEST_CONFIRMATIONS = 3;
     uint256 private subId;
+    
 
     struct participant {
         uint256 amount;
@@ -46,6 +57,13 @@ contract lottery is VRFConsumerBaseV2Plus {
     }
 
     participant[] public participants;
+
+
+    event WinnerSelected(address indexed winner);
+    event EnteredLottery(address indexed participant, string indexed name, uint256 indexed amount);
+
+
+    
 
     /* Constructor */
     constructor(
@@ -62,31 +80,74 @@ contract lottery is VRFConsumerBaseV2Plus {
         i_callbackGasLimit = _callBackGas;
         i_keyHash = _keyhash;
         subId = _subId;
+        // counter = 0;
     }
 
 
     /* Function to enter the lottery */
-    function enterRafle() external payable {
-        if(uint(s_state)!=0){
+    function enterRafle(string memory name) external payable {
+        //CEI Pattern
+
+        //Checks
+
+        if (uint(s_state) != 0) {
             revert lottery_enteranceNotAllowed();
         }
 
         if (msg.value < i_enteranceFee) {
             revert lottery_insufficientBalance();
         }
+
+
+        // Effects
         participants.push(
             participant({amount: msg.value, userAddress: payable(msg.sender)})
         );
+
+        // Emitting a event that user has enterted into the rafle.
+        emit EnteredLottery(msg.sender,name,msg.value);
+
+
     }
 
+
     /* Function to select the winner */
+    
+     function checkUpkeep(
+        bytes calldata /*checkData*/
+    ) external view override returns (bool upkeepNeeded, bytes memory /* performData */){
+        //C E I
+        if(block.timestamp - i_lastTimeLotteryStarted < i_timeLimit && participants.length < 10 && uint(s_state) != 0 ){
+            upkeepNeeded = false;
+        }else{
+            upkeepNeeded = true;
+        }
+
+        return upkeepNeeded;
+    }
+
+
+    function performUpkeep(bytes calldata performData) external override{
+        
+    }
+
+    
+    
+    
     function selectWinner() external {
+
+        // CEI
+
+        //Checks
+
         if (block.timestamp - i_lastTimeLotteryStarted < i_timeLimit) {
             revert lottery_timeNotPassed();
         }
+        
         // chaning the state to close
-
         s_state = LotteryState.close;
+
+
 
         // Use VRFV2PlusClient.RandomWordsRequest directly
         VRFV2PlusClient.RandomWordsRequest memory request = VRFV2PlusClient
@@ -109,20 +170,31 @@ contract lottery is VRFConsumerBaseV2Plus {
         uint256 requestId,
         uint256[] calldata randomWords
     ) internal override {
+
+        //CEI
+
+        //Checks    X
+
+        //Effect
         //got the random word
         uint randomWord = randomWords[0] % participants.length;
         //created a struct instance for fetching the address of winner at specified index within the array
         participant memory temp = participants[randomWord];
         //stored winner address
         winnerAddress = temp.userAddress;
+        emit WinnerSelected(winnerAddress);
+        //resetting the array once a winner is selected
+        participants = new participant[](0);
+
+
+        //Interactions
         //transfering the amount to the winner
-        (bool ifSent,) = winnerAddress.call{value:address(this).balance}("");
-        if(!ifSent){
+        (bool ifSent, ) = winnerAddress.call{value: address(this).balance}("");
+        if (!ifSent) {
             revert lottery_fundNotTransferred();
         }
 
         s_state = LotteryState.open;
-
     }
 
     /* Getter function to retrieve participant information */
@@ -134,20 +206,17 @@ contract lottery is VRFConsumerBaseV2Plus {
         user = temp.userAddress;
         return (user, amount);
     }
+
+
+//What are the conditions that must be checked before executing the lottery
+// time limit 
+// lottery state should be equivalent to open    
+// the number of participants should be greater than 10
+// Implemented these conditions 
+
+
+//implement performupkeep
+
+
 }
 
-// what should be done after selecting the winner ?
-// winner address should be stored                  Done
-// time to be noted                                 Done
-// cash will be transfered to the winner            Done
-
-
-// create a enum 
-// enum is used to track the state of an object/process
-// useful datatype with multiple options       
-//------
-// declaring a datatype that is of enum                                                     Done
-// initally set equavalent to open                                                          Done
-// as soon  as random number is getting picked up it wil change itself into close           Done
-// check to be implemented in the lottery joining function                                  Done
-// finally when the winner get selected it will change itself back to original state        Done
