@@ -115,7 +115,7 @@ contract lottery is VRFConsumerBaseV2Plus {
     
      function checkUpkeep(
         bytes calldata /*checkData*/
-    ) external view override returns (bool upkeepNeeded, bytes memory /* performData */){
+    ) public view returns (bool upkeepNeeded, bytes memory /* performData */){
         //C E I
         if(block.timestamp - i_lastTimeLotteryStarted < i_timeLimit && participants.length < 10 && uint(s_state) != 0 ){
             upkeepNeeded = false;
@@ -123,26 +123,19 @@ contract lottery is VRFConsumerBaseV2Plus {
             upkeepNeeded = true;
         }
 
-        return upkeepNeeded;
-    }
-
-
-    function performUpkeep(bytes calldata performData) external override{
-        
+        return (upkeepNeeded,"");
     }
 
     
     
-    
-    function selectWinner() external {
+    function performUpkeep(bytes calldata performData) external {
 
         // CEI
 
         //Checks
 
-        if (block.timestamp - i_lastTimeLotteryStarted < i_timeLimit) {
-            revert lottery_timeNotPassed();
-        }
+        (bool upkeepNeeded,) = checkUpkeep("");
+
         
         // chaning the state to close
         s_state = LotteryState.close;
@@ -216,6 +209,7 @@ contract lottery is VRFConsumerBaseV2Plus {
 
 
 //implement performupkeep
+//why did we remove override along with function ?
 
 
 }
