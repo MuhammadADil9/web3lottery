@@ -17,6 +17,8 @@ error lottery_timeNotPassed();
 error lottery_insufficientBalance();
 error lottery_fundNotTransferred();
 error lottery_enteranceNotAllowed();
+error lottery_UpkeepLimitNotReached();
+
 
 /**
  * @author Adil
@@ -114,7 +116,7 @@ contract lottery is VRFConsumerBaseV2Plus {
     /* Function to select the winner */
     
      function checkUpkeep(
-        bytes calldata /*checkData*/
+        bytes memory /*checkData*/
     ) public view returns (bool upkeepNeeded, bytes memory /* performData */){
         //C E I
         if(block.timestamp - i_lastTimeLotteryStarted < i_timeLimit && participants.length < 10 && uint(s_state) != 0 ){
@@ -133,15 +135,15 @@ contract lottery is VRFConsumerBaseV2Plus {
         // CEI
 
         //Checks
-
         (bool upkeepNeeded,) = checkUpkeep("");
-
+        if(!upkeepNeeded){
+            revert lottery_UpkeepLimitNotReached();
+        }
         
+
+
         // chaning the state to close
         s_state = LotteryState.close;
-
-
-
         // Use VRFV2PlusClient.RandomWordsRequest directly
         VRFV2PlusClient.RandomWordsRequest memory request = VRFV2PlusClient
             .RandomWordsRequest({
@@ -155,7 +157,8 @@ contract lottery is VRFConsumerBaseV2Plus {
                 )
             });
 
-        uint256 requestId = s_vrfCoordinator.requestRandomWords(request);
+          uint256 requestId = s_vrfCoordinator.requestRandomWords(request);
+
     }
 
     /* Function to handle the fulfillment of random words */
@@ -164,17 +167,15 @@ contract lottery is VRFConsumerBaseV2Plus {
         uint256[] calldata randomWords
     ) internal override {
 
-        //CEI
-
-        //Checks    X
-
         //Effect
         //got the random word
         uint randomWord = randomWords[0] % participants.length;
         //created a struct instance for fetching the address of winner at specified index within the array
-        participant memory temp = participants[randomWord];
+        // participant memory temp = participants[randomWord];
+        
         //stored winner address
-        winnerAddress = temp.userAddress;
+        //winnerAddress = temp.userAddress;
+        winnerAddress = participants[randomWord].userAddress;
         emit WinnerSelected(winnerAddress);
         //resetting the array once a winner is selected
         participants = new participant[](0);
@@ -189,6 +190,8 @@ contract lottery is VRFConsumerBaseV2Plus {
 
         s_state = LotteryState.open;
     }
+
+
 
     /* Getter function to retrieve participant information */
     function getUser(
