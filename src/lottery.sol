@@ -162,35 +162,31 @@ contract lottery is VRFConsumerBaseV2Plus {
     }
 
     /* Function to handle the fulfillment of random words */
-    function fulfillRandomWords(
-        uint256 requestId,
-        uint256[] calldata randomWords
-    ) internal override {
+function fulfillRandomWords(
+    uint256 requestId,
+    uint256[] calldata randomWords
+) internal override {
 
-        //Effect
-        //got the random word
-        uint randomWord = randomWords[0] % participants.length;
-        //created a struct instance for fetching the address of winner at specified index within the array
-        // participant memory temp = participants[randomWord];
-        
-        //stored winner address
-        //winnerAddress = temp.userAddress;
-        winnerAddress = participants[randomWord].userAddress;
-        emit WinnerSelected(winnerAddress);
-        //resetting the array once a winner is selected
-        participants = new participant[](0);
+    //Effect
+    //got the random word
+    uint randomWord = randomWords[0] % participants.length;
 
+    //stored winner address
+    winnerAddress = participants[randomWord].userAddress;
+    emit WinnerSelected(winnerAddress);
 
-        //Interactions
-        //transfering the amount to the winner
-        (bool ifSent, ) = winnerAddress.call{value: address(this).balance}("");
-        if (!ifSent) {
-            revert lottery_fundNotTransferred();
-        }
+    //resetting the array once a winner is selected
+    delete participants; // Clears the participants array in storage
 
-        s_state = LotteryState.open;
+    //Interactions
+    //transfering the amount to the winner
+    (bool ifSent, ) = winnerAddress.call{value: address(this).balance}("");
+    if (!ifSent) {
+        revert lottery_fundNotTransferred();
     }
 
+    s_state = LotteryState.open;
+}
 
 
     /* Getter function to retrieve participant information */
@@ -203,16 +199,6 @@ contract lottery is VRFConsumerBaseV2Plus {
         return (user, amount);
     }
 
-
-//What are the conditions that must be checked before executing the lottery
-// time limit 
-// lottery state should be equivalent to open    
-// the number of participants should be greater than 10
-// Implemented these conditions 
-
-
-//implement performupkeep
-//why did we remove override along with function ?
 
 
 }
