@@ -3,6 +3,7 @@ pragma solidity ^0.8.9;
 
 import {VRFCoordinatorV2Mock} from "lib/chainlink-brownie-contracts/contracts/src/v0.8/mocks/VRFCoordinatorV2Mock.sol";
 import {Script} from "lib/forge-std/src/Script.sol";
+import {VmSafe} from "lib/forge-std/src/Vm.sol";
 
 error helpferConfig_incorrectChain();
 
@@ -70,7 +71,7 @@ contract helperConfig is Script {
 
         //first we need to initialize mock contract which is a copy of exact same contract deployed on chian
         // vm.startbroadcast();
-        vm.stratBroadcast(msg.sender);
+        vm.startBroadcast();
         VRFCoordinatorV2Mock mockVrfCordinator = new VRFCoordinatorV2Mock(baseFee,gasPriceLink);
         vm.stopBroadcast();
 
