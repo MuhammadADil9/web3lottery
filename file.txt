@@ -1,16 +1,20 @@
-// type of errors 
-// require with errors
-// revert with errors 
+Why the fulfilrandom words requires two arguments ? 
 
-// With Require they not only allow using the require() with string but also custom errors
+like now we are proceeding towards playing the random number generated.
+
+The number recieved from array will be moded by total number of participants Done
+the participant will declared as winner     Done
+total amount deducting some fee will be than transfered to the winner Done
+A error if there is a failure in transferring the amount to the winner Done
+a event that will occur mentioning the winner done
+last time getting updated done
+array getting reset  done
 
 
 
-these 6 values are required to proceed with VRF
 
-uint256 s_subscriptionId;
-address vrfCoordinator = 0x9DdfaCa8183c41ad55329BdeeD9F6A8d53168B1B;
-bytes32 s_keyHash = 0x787d74caea10b2b357790d5b5247c2f63d1d91572a9846f780606e4d953677ae;
-uint32 callbackGasLimit = 40000;
-uint16 requestConfirmations = 3;
-uint32 numWords =  1;
+winner.transfer(balance);
+
+
+
+
