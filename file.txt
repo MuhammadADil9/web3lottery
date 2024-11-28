@@ -1,20 +1,38 @@
-Why the fulfilrandom words requires two arguments ? 
-
-like now we are proceeding towards playing the random number generated.
-
-The number recieved from array will be moded by total number of participants Done
-the participant will declared as winner     Done
-total amount deducting some fee will be than transfered to the winner Done
-A error if there is a failure in transferring the amount to the winner Done
-a event that will occur mentioning the winner done
-last time getting updated done
-array getting reset  done
+from the genral point of view                       DONE
+create the subscription programatically             DONE
+add this contract as consumer                       DONE
+add the functionality to fund as well to remove     
 
 
 
 
-winner.transfer(balance);
 
 
 
 
+
+
+97802776641483268026869314607947010537980447778541042774586935978233989077328
+subscription id 
+
+vrfCordinator Address 
+0x9DdfaCa8183c41ad55329BdeeD9F6A8d53168B1B
+
+
+wallet address 
+0x83c549cc62fed4798545d945dafb597186981e9c
+
+link token contract address 
+0x779877A7B0D9E8603169DdbD7836e478b4624789
+
+
+
+While creating the subscription ID programattically 
+how I will be able to fund the contract. 
+How I will be able to fetch the same ID to use in the subscription manager? 
+
+
+
+PUSING myself forward
+
+added the functionality 
