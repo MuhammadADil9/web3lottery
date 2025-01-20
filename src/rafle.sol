@@ -31,20 +31,17 @@ contract raffle is VRFConsumerBaseV2Plus {
     // instance for link token contract
     LinkTokenInterface linkToken;
 
-    //struct for storing the user information
-    struct user {
-        address payable participant;
-        string name;
-        uint256 time;
-    }
-
     // array of structure;
     user[] public s_users;
     //time variable
     uint256 private immutable i_timeLimit;
     uint256 private LotterylastTime;
-
     uint256 private requestId;
+
+    RafleState private rafle_State_Instance;
+
+
+
 
     /** Functions */
     constructor(
@@ -67,6 +64,9 @@ contract raffle is VRFConsumerBaseV2Plus {
 
         // running the function for creating the subscription programmatically
         _createNewSubscription();
+
+        // initializing the rafle state using the enum
+        rafle_State_Instance = RafleState.open;
     }
 
     function enterRafle(string calldata name) external payable {
@@ -75,6 +75,9 @@ contract raffle is VRFConsumerBaseV2Plus {
                 "Insufficient Balance, required balance is :- ",
                 i_EnteranceFee
             );
+        }  
+        if(rafle_State_Instance != RafleState.open ){
+            revert rafle_rafleState();
         }
 
         // inserting the users by inserting appropriate arguments
@@ -88,13 +91,11 @@ contract raffle is VRFConsumerBaseV2Plus {
         if (block.timestamp - LotterylastTime < i_timeLimit) {
             revert rafle_notEnoughTimePassed();
         }
-
         // reverting with a error if there are less than 5 people within the array
-
         if (s_users.length < 5) {
             revert rafle_notEnoughPersonInLottery();
         }
-
+        rafle_State_Instance = RafleState.close; 
 
         VRFV2PlusClient.RandomWordsRequest memory request = VRFV2PlusClient.RandomWordsRequest({
                 keyHash: s_keyHash,
@@ -133,6 +134,9 @@ contract raffle is VRFConsumerBaseV2Plus {
         emit amountPaidToWinner(winner, s_users[number].name);
         LotterylastTime = block.timestamp;
         delete s_users;
+
+        //open the rafle state once everything is done
+        rafle_State_Instance = RafleState.open;
     }
 
     // Create a new subscription when the contract is initially deployed.
@@ -177,4 +181,18 @@ contract raffle is VRFConsumerBaseV2Plus {
     error rafle_notEnoughPersonInLottery();
     error rafle_amountNotSentToWinner();
     error rafle_notOwner();
+    error rafle_rafleState();
+
+    /** Struct */
+    struct user {
+        address payable participant;
+        string name;
+        uint256 time;
+    }
+
+    /** Enums */
+
+    enum RafleState {open,close}
+
+
 }

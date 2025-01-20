@@ -1,11 +1,3 @@
-from the genral point of view                       DONE
-create the subscription programatically             DONE
-add this contract as consumer                       DONE
-add the functionality to fund as well to remove     
-
-
-
-
 
 
 
@@ -30,9 +22,10 @@ link token contract address
 While creating the subscription ID programattically 
 how I will be able to fund the contract. 
 How I will be able to fetch the same ID to use in the subscription manager? 
-
+How to reset the array 
 
 
 PUSING myself forward
 
 added the functionality 
+
