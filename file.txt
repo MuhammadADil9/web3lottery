@@ -29,3 +29,61 @@ PUSING myself forward
 
 added the functionality 
 
+
+//completing the task
+//adding the front end
+//learning blogs
+//emglish
+
+
+
+
+
+// orcale are network of nodeoperators that    provide services to the blockchain 
+// These are de-centralized oracle network
+// types it include such as 
+// on-chain
+// off-chain
+// compute-embeded oracle
+
+
+
+// Oracle Request and receive cycle 
+// creating a subscription programmatically 
+// SubscriptionManager contract
+// the contract creating the subcription will add itself to the consumer programmatically. 
+Call topUpSubscription from the VRFv2PlusSubscriptionManager contract. This function uses the LINK token contract's transferAndCall function to fund your new subscription
+
+
+
+Wallet address:
+0x83c549cc62fed4798545d945dafb597186981e9c
+
+vrf cordinator address  for sepolia 
+0x9DdfaCa8183c41ad55329BdeeD9F6A8d53168B1B
+
+called on vrfcordinator contract for creating the subscription 
+> Create Subscription
+for funding the subscription with native coin
+> Fund Subscription With Native
+
+
+subscription ID
+41153822692417430952338374719626360880140964354581988556926204634749688928585 with 0.8ETH
+
+subscription ID
+97802776641483268026869314607947010537980447778541042774586935978233989077328 with 6 Link
+
+
+
+
+address vrfCoordinator = 0x9DdfaCa8183c41ad55329BdeeD9F6A8d53168B1B;
+bytes32 s_keyHash = 0x787d74caea10b2b357790d5b5247c2f63d1d91572a9846f780606e4d953677ae;
+uint32 callbackGasLimit = 40000;
+uint16 requestConfirmations = 3;
+ =  1;
+
+
+//realworld 
+> mainnet & testnet same script latest
+> for mock for testing the contract locally
