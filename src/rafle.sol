@@ -1,140 +1,140 @@
 //SPDX-License-Identifier:MIT
-pragma solidity ^0.8.19;
+// pragma solidity ^0.8.19;
 
-// import {VRFConsumerBaseV2Plus} from "@chainlink/contracts/src/v0.8/vrf/dev/VRFConsumerBaseV2Plus.sol";
-// import {VRFV2PlusClient} from "@chainlink/contracts/src/v0.8/vrf/dev/libraries/VRFV2PlusClient.sol";
-// import {LinkTokenInterface} from "@chainlink/contracts/src/v0.8/shared/interfaces/LinkTokenInterface.sol";
-// import {IVRFCoordinatorV2Plus} from "@chainlink/contracts/src/v0.8/vrf/dev/interfaces/IVRFCoordinatorV2Plus.sol";
+// // import {VRFConsumerBaseV2Plus} from "@chainlink/contracts/src/v0.8/vrf/dev/VRFConsumerBaseV2Plus.sol";
+// // import {VRFV2PlusClient} from "@chainlink/contracts/src/v0.8/vrf/dev/libraries/VRFV2PlusClient.sol";
+// // import {LinkTokenInterface} from "@chainlink/contracts/src/v0.8/shared/interfaces/LinkTokenInterface.sol";
+// // import {IVRFCoordinatorV2Plus} from "@chainlink/contracts/src/v0.8/vrf/dev/interfaces/IVRFCoordinatorV2Plus.sol";
 
-//net spac for making the contract more beautiful
-/**
- * @title Lottery contract
- * @author Adil
- * @dev oracle, RNG & chainlink automation
- * @notice This is a lottery smart contract. Join us and receive a chance of winning handsome amount of mon
- */
+// //net spac for making the contract more beautiful
+// /**
+//  * @title Lottery contract
+//  * @author Adil
+//  * @dev oracle, RNG & chainlink automation
+//  * @notice This is a lottery smart contract. Join us and receive a chance of winning handsome amount of mon
+//  */
 
-contract rafleCotnract is VRFConsumerBaseV2Plus {
-    /**State variables */
-    uint256 private immutable i_entranceFee;
-    uint256 private immutable i_timeLimit;
-    uint256 private immutable i_lastTimeContractInitiated;
-    userData[] internal s_userArray;
-    contractStatus private s_ContractStatus;
+// contract rafleCotnract is VRFConsumerBaseV2Plus {
+//     /**State variables */
+//     uint256 private immutable i_entranceFee;
+//     uint256 private immutable i_timeLimit;
+//     uint256 private immutable i_lastTimeContractInitiated;
+//     userData[] internal s_userArray;
+//     contractStatus private s_ContractStatus;
 
-    //VRF request parameters
-    uint256 private immutable i_subscriptionId;
-    address private immutable i_vrfCoordinator;
-    bytes32 private immutable i_keyHash;
-    uint32 private constant CALLBACKGASLIMIT = 5000;
-    uint16 private constant REQUEST_CONFIRMATION = 2;
-    uint32 private constant NUM_OF_WORDS = 1;
-    uint256 private s_requestId = 0;
-    /**Functions */
-    constructor(
-        uint256 _entranceFee,
-        uint256 _timeLimit,
-        uint256 _subscriptionId,
-        address _vrfCoordinator,
-        bytes32 _keyHash
-    ) VRFConsumerBaseV2Plus(_vrfCoordinator) {
-        i_entranceFee = _entranceFee;
-        i_timeLimit = _timeLimit;
-        i_lastTimeContractInitiated = block.timestamp;
-        _subscriptionId = _subscriptionId;
-        i_vrfCoordinator = _vrfCoordinator;
-        _keyHash = _keyHash;
-        s_ContractStatus = contractStatus.open;
-    }
+//     //VRF request parameters
+//     uint256 private immutable i_subscriptionId;
+//     address private immutable i_vrfCoordinator;
+//     bytes32 private immutable i_keyHash;
+//     uint32 private constant CALLBACKGASLIMIT = 5000;
+//     uint16 private constant REQUEST_CONFIRMATION = 2;
+//     uint32 private constant NUM_OF_WORDS = 1;
+//     uint256 private s_requestId = 0;
+//     /**Functions */
+//     constructor(
+//         uint256 _entranceFee,
+//         uint256 _timeLimit,
+//         uint256 _subscriptionId,
+//         address _vrfCoordinator,
+//         bytes32 _keyHash
+//     ) VRFConsumerBaseV2Plus(_vrfCoordinator) {
+//         i_entranceFee = _entranceFee;
+//         i_timeLimit = _timeLimit;
+//         i_lastTimeContractInitiated = block.timestamp;
+//         _subscriptionId = _subscriptionId;
+//         i_vrfCoordinator = _vrfCoordinator;
+//         _keyHash = _keyHash;
+//         s_ContractStatus = contractStatus.open;
+//     }
 
-    function enterRafle(
-        string memory _name,
-        string memory _country
-    ) public payable {
-        if (msg.value < 1 ether) {
-            revert Rafle_insufficientEntranceFee(msg.value, 1 ether);
-        }
-        if (uint(s_ContractStatus) != 0) {
-            revert Rafle_contractStateNotOpened();
-        }
-        s_userArray.push(
-            userData({
-                name: _name,
-                country: _country,
-                userAddress: payable(msg.sender)
-            })
-        );
-        emit userEntered(msg.sender, _country);
-    }
+//     function enterRafle(
+//         string memory _name,
+//         string memory _country
+//     ) public payable {
+//         if (msg.value < 1 ether) {
+//             revert Rafle_insufficientEntranceFee(msg.value, 1 ether);
+//         }
+//         if (uint(s_ContractStatus) != 0) {
+//             revert Rafle_contractStateNotOpened();
+//         }
+//         s_userArray.push(
+//             userData({
+//                 name: _name,
+//                 country: _country,
+//                 userAddress: payable(msg.sender)
+//             })
+//         );
+//         emit userEntered(msg.sender, _country);
+//     }
 
-    function selectWinner() public {
-        //allowing people to win the rafle
-        if ((block.timestamp - i_lastTimeContractInitiated) < i_timeLimit) {
-            revert Rafle_notEnoughTimePassed();
-        }
-        if (s_userArray.length < 5) {
-            revert Rafle_notEnoughPeopleInTheContract();
-        }
+//     function selectWinner() public {
+//         //allowing people to win the rafle
+//         if ((block.timestamp - i_lastTimeContractInitiated) < i_timeLimit) {
+//             revert Rafle_notEnoughTimePassed();
+//         }
+//         if (s_userArray.length < 5) {
+//             revert Rafle_notEnoughPeopleInTheContract();
+//         }
 
-        s_requestId = s_vrfCoordinator.requestRandomWords(
-            VRFV2PlusClient.RandomWordsRequest({
-                keyHash: i_keyHash,
-                subId: i_subscriptionId,
-                requestConfirmations: REQUEST_CONFIRMATION,
-                callbackGasLimit: CALLBACKGASLIMIT,
-                numWords: NUM_OF_WORDS,
-                // Set nativePayment to true to pay for VRF requests with Sepolia ETH instead of LINK
-                extraArgs: VRFV2PlusClient._argsToBytes(
-                    VRFV2PlusClient.ExtraArgsV1({nativePayment: false})
-                )
-            })
-        );
-        // emitting a event that a event is initiated
-        emit lotteryInitiated();
+//         s_requestId = s_vrfCoordinator.requestRandomWords(
+//             VRFV2PlusClient.RandomWordsRequest({
+//                 keyHash: i_keyHash,
+//                 subId: i_subscriptionId,
+//                 requestConfirmations: REQUEST_CONFIRMATION,
+//                 callbackGasLimit: CALLBACKGASLIMIT,
+//                 numWords: NUM_OF_WORDS,
+//                 // Set nativePayment to true to pay for VRF requests with Sepolia ETH instead of LINK
+//                 extraArgs: VRFV2PlusClient._argsToBytes(
+//                     VRFV2PlusClient.ExtraArgsV1({nativePayment: false})
+//                 )
+//             })
+//         );
+//         // emitting a event that a event is initiated
+//         emit lotteryInitiated();
         
-        //closing the lottery becuase once inititaed it will only open when winner is selected and everything is done
-         s_ContractStatus = contractStatus.open;
+//         //closing the lottery becuase once inititaed it will only open when winner is selected and everything is done
+//          s_ContractStatus = contractStatus.open;
 
-    }
+//     }
 
-    function fulfillRandomWords(
-        uint256 requestId,
-        uint256[] calldata randomWords
-    ) internal override {}
+//     function fulfillRandomWords(
+//         uint256 requestId,
+//         uint256[] calldata randomWords
+//     ) internal override {}
 
-    /**Getters */
-    function getEntranceAmount() private view returns (uint256) {
-        return i_entranceFee;
-    }
+//     /**Getters */
+//     function getEntranceAmount() private view returns (uint256) {
+//         return i_entranceFee;
+//     }
 
-    /**Function Modifiers */
+//     /**Function Modifiers */
 
-    /**Events */
-    event userEntered(address indxed, string indexed);
-    event lotteryInitiated();
-    /**Errors */
+//     /**Events */
+//     event userEntered(address indxed, string indexed);
+//     event lotteryInitiated();
+//     /**Errors */
 
-    error Rafle_insufficientEntranceFee(uint256 sender, uint256 required);
-    //Error or not enough time has passed
-    error Rafle_notEnoughTimePassed();
-    //contract state is not opened
-    error Rafle_contractStateNotOpened();
-    //not enough people in the contract
-    error Rafle_notEnoughPeopleInTheContract();
+//     error Rafle_insufficientEntranceFee(uint256 sender, uint256 required);
+//     //Error or not enough time has passed
+//     error Rafle_notEnoughTimePassed();
+//     //contract state is not opened
+//     error Rafle_contractStateNotOpened();
+//     //not enough people in the contract
+//     error Rafle_notEnoughPeopleInTheContract();
 
-    /**Struct Types */
-    struct userData {
-        string name;
-        string country;
-        address payable userAddress;
-    }
-    /**Enums*/
-    enum contractStatus {
-        open,
-        pending,
-        closed
-    }
-}
+//     /**Struct Types */
+//     struct userData {
+//         string name;
+//         string country;
+//         address payable userAddress;
+//     }
+//     /**Enums*/
+//     enum contractStatus {
+//         open,
+//         pending,
+//         closed
+//     }
+// }
 
 
 // There has to be the automation for triggering the winner function
