@@ -87,3 +87,7 @@ uint16 requestConfirmations = 3;
 //realworld 
 > mainnet & testnet same script latest
 > for mock for testing the contract locally
+
+
+
+is this possible for a conract having a external function and it is being called by contract that inherited it ?

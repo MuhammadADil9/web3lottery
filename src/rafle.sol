@@ -1,5 +1,5 @@
 //SPDX-License-Identifier:MIT
-pragma solidity ^0.8.19;
+pragma solidity ^0.8.22;
 
 import {VRFConsumerBaseV2Plus} from "@chainlink/contracts/src/v0.8/vrf/dev/VRFConsumerBaseV2Plus.sol";
 import {VRFV2PlusClient} from "@chainlink/contracts/src/v0.8/vrf/dev/libraries/VRFV2PlusClient.sol";
@@ -18,9 +18,10 @@ contract rafleCotnract is VRFConsumerBaseV2Plus {
     /**State variables */
     uint256 private immutable i_entranceFee;
     uint256 private immutable i_timeLimit;
-    uint256 private immutable i_lastTimeContractInitiated;
+    uint256 private lastTimeContractInitiated;
     userData[] internal s_userArray;
     contractStatus private s_ContractStatus;
+    address payable private winner;
 
     //VRF request parameters
     uint256 private immutable i_subscriptionId;
@@ -40,7 +41,7 @@ contract rafleCotnract is VRFConsumerBaseV2Plus {
     ) VRFConsumerBaseV2Plus(_vrfCoordinator) {
         i_entranceFee = _entranceFee;
         i_timeLimit = _timeLimit;
-        i_lastTimeContractInitiated = block.timestamp;
+        lastTimeContractInitiated = block.timestamp;
         _subscriptionId = _subscriptionId;
         i_vrfCoordinator = _vrfCoordinator;
         _keyHash = _keyHash;
@@ -51,12 +52,16 @@ contract rafleCotnract is VRFConsumerBaseV2Plus {
         string memory _name,
         string memory _country
     ) public payable {
+        //checks 
+
         if (msg.value < 1 ether) {
             revert Rafle_insufficientEntranceFee(msg.value, 1 ether);
         }
         if (uint(s_ContractStatus) != 0) {
             revert Rafle_contractStateNotOpened();
         }
+        
+        // effects 
         s_userArray.push(
             userData({
                 name: _name,
@@ -64,18 +69,23 @@ contract rafleCotnract is VRFConsumerBaseV2Plus {
                 userAddress: payable(msg.sender)
             })
         );
+
+        //interaction
+
         emit userEntered(msg.sender, _country);
     }
 
     function selectWinner() public {
+        //checks
         //allowing people to win the rafle
-        if ((block.timestamp - i_lastTimeContractInitiated) < i_timeLimit) {
+        if ((block.timestamp - lastTimeContractInitiated) < i_timeLimit) {
             revert Rafle_notEnoughTimePassed();
         }
         if (s_userArray.length < 5) {
             revert Rafle_notEnoughPeopleInTheContract();
         }
 
+        //interactions 
         s_requestId = s_vrfCoordinator.requestRandomWords(
             VRFV2PlusClient.RandomWordsRequest({
                 keyHash: i_keyHash,
@@ -91,16 +101,38 @@ contract rafleCotnract is VRFConsumerBaseV2Plus {
         );
         // emitting a event that a event is initiated
         emit lotteryInitiated();
-        
+        //effects
         //closing the lottery becuase once inititaed it will only open when winner is selected and everything is done
-         s_ContractStatus = contractStatus.open;
+         s_ContractStatus = contractStatus.pending;
 
     }
 
     function fulfillRandomWords(
         uint256 requestId,
         uint256[] calldata randomWords 
-    ) internal override {}
+    ) internal override {
+        //checks
+
+        //effects
+        //first of the number received will be modulos by the total number
+        uint winnerIndex = randomWords[0] % s_userArray.length;
+        uint256 amountToTransfer = address(this).balance - (s_userArray.length * 1 ether);
+        winner = s_userArray[winnerIndex].userAddress;
+        //transfering the amount to the winner
+         (bool success, ) = winner.call{value: amountToTransfer}("");
+    if (!success) {
+        revert Rafle_failedToTransferMoney(); 
+    }
+        
+        //emitting the event that winner is selected
+        emit Rafle_winnerSelected();
+        //resetting the array once again
+        delete s_userArray; 
+        lastTimeContractInitiated = block.timestamp;
+        // reopening the array once everything is donw 
+        s_ContractStatus = contractStatus.open;
+
+    }
 
     /**Getters */
     function getEntranceAmount() private view returns (uint256) {
@@ -112,6 +144,9 @@ contract rafleCotnract is VRFConsumerBaseV2Plus {
     /**Events */
     event userEntered(address indxed, string indexed);
     event lotteryInitiated();
+    //event for declaring thw winner 
+    event Rafle_winnerSelected();
+
     /**Errors */
 
     error Rafle_insufficientEntranceFee(uint256 sender, uint256 required);
@@ -121,6 +156,8 @@ contract rafleCotnract is VRFConsumerBaseV2Plus {
     error Rafle_contractStateNotOpened();
     //not enough people in the contract
     error Rafle_notEnoughPeopleInTheContract();
+    // error in the case failed to transfer the amount the winner
+    error Rafle_failedToTransferMoney();
 
     /**Struct Types */
     struct userData {
@@ -137,8 +174,12 @@ contract rafleCotnract is VRFConsumerBaseV2Plus {
 }
 
 
-// There has to be the automation for triggering the winner function
-// there has to be a random number that will select the winner
+// importance of 
+// checks ( conditios )
+// effects ( effects within the contract )
+// interactions ( anything that is happening outside of the contract )
+
+
 
 // Previous Contract
 
