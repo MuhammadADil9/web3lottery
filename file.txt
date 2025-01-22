@@ -91,3 +91,15 @@ uint16 requestConfirmations = 3;
 
 
 is this possible for a conract having a external function and it is being called by contract that inherited it ?
+
+chainlink automation pre-req requires 677 standard token to be implemented 
+
+// there are three type of jobs on behalf of which chainlink automation triggers it self
+> time base triggers
+> custom logic trigger 
+> log data trigger 
+
+// of chain chainlink networks checks constantly that if there is need to perform upkeep
+// if the condition is met then signed report is sent to register that which conditions to provoke and finally the desired functions are called in the upkeep contract onchian
+
+

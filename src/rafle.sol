@@ -75,14 +75,30 @@ contract rafleCotnract is VRFConsumerBaseV2Plus {
         emit userEntered(msg.sender, _country);
     }
 
-    function selectWinner() public {
+
+
+    function checkUpkeep(
+        bytes memory /* checkData */
+    )
+        public
+        view
+        returns (bool upkeepNeeded, bytes memory /* performData */)
+    {
+        bool time = (block.timestamp - lastTimeContractInitiated) >= i_timeLimit;
+        bool people = s_userArray.length >=5;
+        bool stateOpened = uint(s_ContractStatus) == 0;
+        upkeepNeeded = time && people && stateOpened;
+        return(upkeepNeeded,"0x0");
+    }
+
+
+
+        function performUpkeep(bytes calldata /* performData */) external {
         //checks
-        //allowing people to win the rafle
-        if ((block.timestamp - lastTimeContractInitiated) < i_timeLimit) {
-            revert Rafle_notEnoughTimePassed();
-        }
-        if (s_userArray.length < 5) {
-            revert Rafle_notEnoughPeopleInTheContract();
+        (bool upkeepNeeded,) = checkUpkeep("");
+
+        if(!upkeepNeeded){
+            revert Rafle_invalidPerformUpkeep();
         }
 
         //interactions 
@@ -106,6 +122,8 @@ contract rafleCotnract is VRFConsumerBaseV2Plus {
          s_ContractStatus = contractStatus.pending;
 
     }
+
+
 
     function fulfillRandomWords(
         uint256 requestId,
@@ -158,7 +176,8 @@ contract rafleCotnract is VRFConsumerBaseV2Plus {
     error Rafle_notEnoughPeopleInTheContract();
     // error in the case failed to transfer the amount the winner
     error Rafle_failedToTransferMoney();
-
+    // invalid perform upkeep error
+    error Rafle_invalidPerformUpkeep();
     /**Struct Types */
     struct userData {
         string name;
@@ -168,8 +187,7 @@ contract rafleCotnract is VRFConsumerBaseV2Plus {
     /**Enums*/
     enum contractStatus {
         open,
-        pending,
-        closed
+        pending
     }
 }
 
