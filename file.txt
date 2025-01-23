@@ -103,3 +103,38 @@ chainlink automation pre-req requires 677 standard token to be implemented
 // if the condition is met then signed report is sent to register that which conditions to provoke and finally the desired functions are called in the upkeep contract onchian
 
 
+// what is the difference between memory and calldata 
+// why is a interface used in solidty ? 
+
+
+requirements for registering the upkeep 
+
+> contract must be automation compatible meaning that it should has the function checkupkeep and performupkeep
+> contract must hold sufficient amount of balance to itself
+> contract must have the address of linkToken and automation registry address 
+
+how the it will happen 
+
+contract will initilize the addresses of link token address and automation registrar address 
+after that it will pay the automation contract for fetching the balance 
+after that it will registar the contract with a struct parameter defing what type of the autoamtion it will require 
+
+
+
+
+
+
+
+
+
+how subscription is being created ?
+
+called the function of create subscription on the vrf cordinator 
+
+
+how subscription is being funded ? 
+
+with the help of transfer and call in link token address 
+
+
+so basically these things are happening on chain and we just simply want to copy these on our local anvil chain 

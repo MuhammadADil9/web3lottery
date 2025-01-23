@@ -54,7 +54,7 @@ contract rafleCotnract is VRFConsumerBaseV2Plus {
     ) public payable {
         //checks 
 
-        if (msg.value < 1 ether) {
+        if (msg.value < i_entranceFee) {
             revert Rafle_insufficientEntranceFee(msg.value, 1 ether);
         }
         if (uint(s_ContractStatus) != 0) {
