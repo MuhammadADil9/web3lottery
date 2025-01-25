@@ -138,3 +138,12 @@ with the help of transfer and call in link token address
 
 
 so basically these things are happening on chain and we just simply want to copy these on our local anvil chain 
+
+
+
+
+//scripts are used for contract deployments along with additional arguments if they exist. 
+
+//Now to identify that everything goes well we need tests
+
+ 

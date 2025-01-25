@@ -20,16 +20,16 @@ contract NetworkConfiguration is Script, constantWords {
     /**Functions */
     constructor() {
         // by default when this script will be initialized it will set the current mapping satus to this struct
-        networkConfigMapping[11155111] = getSepoliaConfiguration();
+        networkConfigMapping[sepolia_ID] = getSepoliaConfiguration();
     }
 
     function getConfigurationByChainId(
         uint256 chainID
-    ) public view returns (networkParams memory configurationStructure) {
+    ) public returns (networkParams memory) {
         if (chainID == sepolia_ID) {
-            configurationStructure = networkConfigMapping[chainID];
+            return networkConfigMapping[chainID];
         } else if (chainID == local_ID) {
-            configurationStructure = localConfiguration;
+            return getLocalConfiguration();
         }
     }
 
@@ -40,7 +40,7 @@ contract NetworkConfiguration is Script, constantWords {
     // therefore break it down into chunk 
     
     //This will return network configuration   
-    function getConfiguration() public view returns(networkParams memory){
+    function getConfiguration() public  returns(networkParams memory){
         return getConfigurationByChainId(block.chainid);
     }
 
@@ -60,18 +60,19 @@ contract NetworkConfiguration is Script, constantWords {
     }
 
     function getLocalConfiguration() public returns (networkParams memory) {
+        VRFCoordinatorV2_5Mock vrf_mockContract;
         if (localConfiguration.vrfCoordinator != address(0)) {
             return localConfiguration;
         }
 
         vm.startBroadcast();
-        VRFCoordinatorV2_5Mock vrf_mockContract = new VRFCoordinatorV2_5Mock(1e5,1e5,1e10); 
+        vrf_mockContract = new VRFCoordinatorV2_5Mock(1e5,1e5,1e10); 
         vm.stopBroadcast();
 
         localConfiguration = networkParams({
             entranceFee: 1 ether,
             timeLimit: 60,
-            subscriptionId: 97802776641483268026869314607947010537980447778541042774586935978233989077328,
+            subscriptionId: 0,
             vrfCoordinator: address(vrf_mockContract),
             keyHash: 0x787d74caea10b2b357790d5b5247c2f63d1d91572a9846f780606e4d953677ae
         });
