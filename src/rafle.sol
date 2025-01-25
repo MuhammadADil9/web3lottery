@@ -152,13 +152,25 @@ contract rafleCotnract is VRFConsumerBaseV2Plus {
 
     }
 
+    function closeRafle() public {
+        s_ContractStatus = contractStatus.pending;
+    }
+
     /**Getters */
     function getEntranceAmount() public view returns (uint256) {
         return i_entranceFee;
     }
 
-    function getState() public view returns(contractStatus){
-        return s_ContractStatus;
+    function getState() public view returns(uint256){
+        return uint(s_ContractStatus);
+    }
+
+    function getContractBalance() public view returns(uint256){
+        return address(this).balance;
+    }
+
+    function getUserQuantity() public view returns(uint256){
+        return s_userArray.length;
     }
 
     /**Function Modifiers */

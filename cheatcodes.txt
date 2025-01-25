@@ -1,0 +1,43 @@
+
+
+
+
+cheat code for making the address = makeaddr
+function for checking the equality = assert 
+requirement of assinging money to the duplicated user = vm.deal(player, amount)
+
+how test cases are aligned within the contract that is 
+> arrange 
+> act 
+> assert
+
+
+for making a specific address responsible for taking on the current call we use = vm.prank()
+
+
+
+
+
+
+
+-------------------------------------------------------------------------------------------------------
+
+test ideas for the first function 
+
+function for entering into raffle 
+
+constraints 
+
+there must be minimum balance 
+state must be opened 
+
+effects 
+first index of array will be filled 
+a event will be emitted. 
+
+how many possible test cases can be there ? 
+1) everything is correct  Done
+2) everything is wrong that is ( there is no balance, no state is opened so no array index was updated)
+3) balance was there but state was not opened
+4) balance wasn't there but state was opened 
+5) balance and state were all good and it should revert for array not letting the person in. 
