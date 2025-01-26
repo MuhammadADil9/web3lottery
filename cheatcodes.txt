@@ -37,7 +37,15 @@ a event will be emitted.
 
 how many possible test cases can be there ? 
 1) everything is correct  Done
-2) everything is wrong that is ( there is no balance, no state is opened so no array index was updated)
-3) balance was there but state was not opened
-4) balance wasn't there but state was opened 
+2) everything is wrong that is ( there is no balance, no state is opened so no array index was updated) Done
+3) balance was there but state was not opened   Done
+4) balance wasn't there but state was opened    Done
 5) balance and state were all good and it should revert for array not letting the person in. 
+
+
+
+--------------
+test cases for event in context of enterrafle function 
+
+1 ) events emit itself when the function goes well. Done
+2 ) is there any way that we can test that event does not occur. Nope there is no specific way of doing so.

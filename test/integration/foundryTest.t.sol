@@ -99,4 +99,61 @@ contract lotteryTest is Test {
                BALANCE IS PRESENT BUT STATE IS NOT OPENED
     //////////////////////////////////////////////////////////////*/
 
+    function testFeeAvailableButLotteryIsNotOpened() public {
+        //arrange
+        vm.deal(bilal, 2 ether);
+        vm.prank(bilal);
+        //act
+        testRafleContract.closeRafle();
+        vm.expectRevert(rafleCotnract.Rafle_contractStateNotOpened.selector);
+        testRafleContract.enterRafle{value: 1 ether}("bilal", "country");
+        
+        //assert
+        assert(testRafleContract.getUserQuantity() == 0);
+        assert(testRafleContract.getContractBalance() == 0);
+    }
+
+     /*//////////////////////////////////////////////////////////////
+                 BALANCE ISN'T PRESENT BUT STATE IS CLOSED
+    //////////////////////////////////////////////////////////////*/
+
+        function testFeeNotAvailableButLotteryIsOpen() public {
+        //arrange
+        vm.deal(bilal, 0.9 ether);
+        vm.prank(bilal);
+         bytes memory errorData = abi.encodeWithSelector(
+            rafleCotnract.Rafle_insufficientEntranceFee.selector,
+            0.9 ether, // msg.value
+            1 ether // i_entranceFee
+        );
+        //act
+
+        vm.expectRevert(errorData);
+        testRafleContract.enterRafle{value: 0.9 ether}("bilal", "country");
+        
+        //assert
+        assert(testRafleContract.getState() == 0);
+        assert(testRafleContract.getUserQuantity() == 0);
+        assert(testRafleContract.getContractBalance() == 0);
+    }
+
+    /*//////////////////////////////////////////////////////////////
+    MAKING SURE THAT EVENT EMIT ITSELF WHEN PERSON ENTERS INTO RAFLE
+    //////////////////////////////////////////////////////////////*/
+
+
+    function testEventEmitItself() public PersonHasBalance {
+        //Arrange
+        //ACT 
+        vm.expectEmit(true, true, false, false, address(testRafleContract)); 
+        emit rafleCotnract.userEntered(bilal,"pakistan");
+        testRafleContract.enterRafle{value:entranceFee}("bilal","pakistan");
+    }
+
+    modifier PersonHasBalance(){
+        vm.deal(bilal,entranceFee);
+        vm.prank(bilal);
+        _;
+    }
+
 }
