@@ -107,21 +107,21 @@ contract lotteryTest is Test {
         testRafleContract.closeRafle();
         vm.expectRevert(rafleCotnract.Rafle_contractStateNotOpened.selector);
         testRafleContract.enterRafle{value: 1 ether}("bilal", "country");
-        
+
         //assert
         assert(testRafleContract.getUserQuantity() == 0);
         assert(testRafleContract.getContractBalance() == 0);
     }
 
-     /*//////////////////////////////////////////////////////////////
+    /*//////////////////////////////////////////////////////////////
                  BALANCE ISN'T PRESENT BUT STATE IS CLOSED
     //////////////////////////////////////////////////////////////*/
 
-        function testFeeNotAvailableButLotteryIsOpen() public {
+    function testFeeNotAvailableButLotteryIsOpen() public {
         //arrange
         vm.deal(bilal, 0.9 ether);
         vm.prank(bilal);
-         bytes memory errorData = abi.encodeWithSelector(
+        bytes memory errorData = abi.encodeWithSelector(
             rafleCotnract.Rafle_insufficientEntranceFee.selector,
             0.9 ether, // msg.value
             1 ether // i_entranceFee
@@ -130,7 +130,7 @@ contract lotteryTest is Test {
 
         vm.expectRevert(errorData);
         testRafleContract.enterRafle{value: 0.9 ether}("bilal", "country");
-        
+
         //assert
         assert(testRafleContract.getState() == 0);
         assert(testRafleContract.getUserQuantity() == 0);
@@ -141,19 +141,62 @@ contract lotteryTest is Test {
     MAKING SURE THAT EVENT EMIT ITSELF WHEN PERSON ENTERS INTO RAFLE
     //////////////////////////////////////////////////////////////*/
 
-
     function testEventEmitItself() public PersonHasBalance {
         //Arrange
-        //ACT 
-        vm.expectEmit(true, true, false, false, address(testRafleContract)); 
-        emit rafleCotnract.userEntered(bilal,"pakistan");
-        testRafleContract.enterRafle{value:entranceFee}("bilal","pakistan");
+        //ACT
+        vm.expectEmit(true, true, false, false, address(testRafleContract));
+        emit rafleCotnract.userEntered(bilal, "pakistan");
+        testRafleContract.enterRafle{value: entranceFee}("bilal", "pakistan");
     }
 
-    modifier PersonHasBalance(){
-        vm.deal(bilal,entranceFee);
+    /*//////////////////////////////////////////////////////////////
+                       TRIGGERING PERFORM UP KEEP
+    //////////////////////////////////////////////////////////////*/
+    // logic
+    //make sure that checkup keep constrains properly meet the criteria
+    //then trigger perform up keep
+    //then make sure when you enter into the rafle the enternce is failed
+    //state of the contract is closed
+
+    function testEnterenceIntoRafleFailsWhenPerformUpKeepIsInitiated() public UptoFivePersionIntoContract {
+        //act 
+        vm.warp(block.timestamp+timeLimit+1);
+
+        //act and assert
+        //Does this function called below will require me any person to initiate it or if that is okay ?
+        testRafleContract.performUpkeep("");
+        vm.expectRevert(rafleCotnract.Rafle_contractStateNotOpened.selector);
+        vm.prank(bilal);
+        vm.deal(bilal,2 ether);
+        testRafleContract.enterRafle{value:entranceFee}("abc","pakistan");
+    }
+
+    /** Modifiers */
+    modifier PersonHasBalance() {
+        vm.deal(bilal, entranceFee);
         vm.prank(bilal);
         _;
     }
 
+    //     function setUpFiveParticipants() internal {
+    //     for (uint256 a = 1; a <= 5; a++) {
+    //         address addr = makeAddr(a);
+    //         vm.deal(addr, entranceFee);
+    //         vm.startPrank(addr);
+    //         testRafleContract.enterRafle{value: entranceFee}("abc", "pakistan");
+    //         vm.stopPrank();
+    //     }
+    // }
+
+    modifier UptoFivePersionIntoContract() {
+        for (uint256 a = 1; a <= 5; a++) {
+            string memory integerConvertedToString = vm.toString(a);
+            address addr = makeAddr(integerConvertedToString); // Generate a deterministic address
+            vm.deal(addr, entranceFee); // Assign balance to the address
+            vm.startPrank(addr); // Start prank for the address
+            testRafleContract.enterRafle{value: entranceFee}("abc", "pakistan"); // Enter the raffle
+            vm.stopPrank(); // Stop prank
+        }
+        _;
+    }
 }

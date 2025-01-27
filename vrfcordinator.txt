@@ -1,0 +1,33 @@
+how this actually works ? 
+
+// It is a service for generating random number from the oracle with cryptographic proof that indeed it is random number
+// request & receive cycle. 
+// There is subscription accont that we fund with either link token or native token which are then further utilized for funding the request cycle. It is responsible for adding the consumers.
+// VRF Cordinator is basically a smart contract that listens to our request when we want random number 
+// as soon as we request it emits a event which is then listen by off-chain services it then generates the random number sends it back to the cordinator along with proof. 
+// consumers are responsible for requesting and implementing the random number with the help of fulfillrandom words function 
+
+
+throughout the process there are 3 contracts involved in the procedure 
+> subscription contract 
+    responsibility :- generate subscription id, fund subscription , consumder addition, payment for the request. 
+> vrf cordinator :- listen for the request, return the number
+> consumer contract :- implement VRF requirements, request number.
+
+
+
+
+
+
+
+> first of all we create subscription create by calling a method on vrfcordinator 
+
+> after that we fund subscription by calling a method over cordinator ( involve money ) as well as unsure till now
+ 
+ but before deploying the consumer make sure that you have created a subscription.
+
+> then deploy the consumer contract and starting using the random number requests. 
+
+consumer has to bee added at the end because we need consumer contract address
+
+> after that add the consumer to the subscription.

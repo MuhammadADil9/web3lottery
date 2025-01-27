@@ -84,7 +84,7 @@ contract rafleCotnract is VRFConsumerBaseV2Plus {
         view
         returns (bool upkeepNeeded, bytes memory /* performData */)
     {
-        bool time = (block.timestamp - lastTimeContractInitiated) >= i_timeLimit;
+        bool time = (block.timestamp - lastTimeContractInitiated) > i_timeLimit;
         bool people = s_userArray.length >=5;
         bool stateOpened = uint(s_ContractStatus) == 0;
         upkeepNeeded = time && people && stateOpened;

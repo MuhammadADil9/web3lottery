@@ -14,14 +14,17 @@ how test cases are aligned within the contract that is
 
 for making a specific address responsible for taking on the current call we use = vm.prank()
 
+      
+for checking the event >   vm.expectEmit(topic, topic, topic, unindexed, address(contract address)); 
+cheat code for setting the time that is vm.warp(argument)
+cheat code for setting a specific block number vm.roll(argument)
 
+cheat code for starting serires of transaction from same address is by vm.startprank() and must be ended by vm.stoprank()
 
-
-
-
+in order to convert a string into number we can try this vm.toString()
 
 -------------------------------------------------------------------------------------------------------
-
+  
 test ideas for the first function 
 
 function for entering into raffle 
@@ -49,3 +52,10 @@ test cases for event in context of enterrafle function
 
 1 ) events emit itself when the function goes well. Done
 2 ) is there any way that we can test that event does not occur. Nope there is no specific way of doing so.
+
+
+
+-------------------------------
+
+making sure that no one enters into the contract when the state if closed 
+this will only happen when perform up keep will trigger itself.

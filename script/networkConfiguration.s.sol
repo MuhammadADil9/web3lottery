@@ -55,7 +55,8 @@ contract NetworkConfiguration is Script, constantWords {
                 timeLimit: 60,
                 subscriptionId: 97802776641483268026869314607947010537980447778541042774586935978233989077328,
                 vrfCoordinator: 0x9DdfaCa8183c41ad55329BdeeD9F6A8d53168B1B,
-                keyHash: 0x787d74caea10b2b357790d5b5247c2f63d1d91572a9846f780606e4d953677ae
+                keyHash: 0x787d74caea10b2b357790d5b5247c2f63d1d91572a9846f780606e4d953677ae,
+                linkToken : 0x779877A7B0D9E8603169DdbD7836e478b4624789
             });
     }
 
@@ -69,12 +70,15 @@ contract NetworkConfiguration is Script, constantWords {
         vrf_mockContract = new VRFCoordinatorV2_5Mock(1e5,1e5,1e10); 
         vm.stopBroadcast();
 
+        //create amother function that will now setup the constructor as well it will return it
+
         localConfiguration = networkParams({
             entranceFee: 1 ether,
             timeLimit: 60,
             subscriptionId: 0,
             vrfCoordinator: address(vrf_mockContract),
-            keyHash: 0x787d74caea10b2b357790d5b5247c2f63d1d91572a9846f780606e4d953677ae
+            keyHash: 0x787d74caea10b2b357790d5b5247c2f63d1d91572a9846f780606e4d953677ae,
+            linkToken : 0x779877A7B0D9E8603169DdbD7836e478b4624789
         });
         networkConfigMapping[31337] = localConfiguration;
         return localConfiguration;
@@ -87,6 +91,7 @@ contract NetworkConfiguration is Script, constantWords {
         uint256 subscriptionId;
         address vrfCoordinator;
         bytes32 keyHash;
+        address linkToken; 
     }
 }
 
