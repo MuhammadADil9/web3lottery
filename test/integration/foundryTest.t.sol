@@ -20,10 +20,12 @@ contract lotteryTest is Test {
     uint256 subscriptionId;
     address vrfCoordinator;
     bytes32 keyHash;
+    address LinkTokenAddress;
 
     address public bilal = makeAddr("bilal");
 
     function setUp() external {
+        console.log("this is test contract address :- ",address(this));
         deployScript testDeployScript = new deployScript();
         (testRafleContract, testNetworkConfig) = testDeployScript.deployRafle();
         (
@@ -31,7 +33,8 @@ contract lotteryTest is Test {
             timeLimit,
             subscriptionId,
             vrfCoordinator,
-            keyHash
+            keyHash,
+            LinkTokenAddress
         ) = testDeployScript.arguments();
 
         console.log("vrfCoordinator:", vrfCoordinator);
@@ -158,17 +161,21 @@ contract lotteryTest is Test {
     //then make sure when you enter into the rafle the enternce is failed
     //state of the contract is closed
 
-    function testEnterenceIntoRafleFailsWhenPerformUpKeepIsInitiated() public UptoFivePersionIntoContract {
-        //act 
-        vm.warp(block.timestamp+timeLimit+1);
+    function testEnterenceIntoRafleFailsWhenPerformUpKeepIsInitiated()
+        public
+        UptoFivePersionIntoContract
+    {
+        //act
+        vm.warp(block.timestamp + timeLimit + 1);
 
         //act and assert
         //Does this function called below will require me any person to initiate it or if that is okay ?
+        // vm.prank(bilal);
         testRafleContract.performUpkeep("");
-        vm.expectRevert(rafleCotnract.Rafle_contractStateNotOpened.selector);
         vm.prank(bilal);
-        vm.deal(bilal,2 ether);
-        testRafleContract.enterRafle{value:entranceFee}("abc","pakistan");
+        vm.deal(bilal, 2 ether);
+        vm.expectRevert(rafleCotnract.Rafle_contractStateNotOpened.selector);
+        testRafleContract.enterRafle{value: entranceFee}("bilal", "pakistan");
     }
 
     /** Modifiers */
@@ -177,16 +184,6 @@ contract lotteryTest is Test {
         vm.prank(bilal);
         _;
     }
-
-    //     function setUpFiveParticipants() internal {
-    //     for (uint256 a = 1; a <= 5; a++) {
-    //         address addr = makeAddr(a);
-    //         vm.deal(addr, entranceFee);
-    //         vm.startPrank(addr);
-    //         testRafleContract.enterRafle{value: entranceFee}("abc", "pakistan");
-    //         vm.stopPrank();
-    //     }
-    // }
 
     modifier UptoFivePersionIntoContract() {
         for (uint256 a = 1; a <= 5; a++) {

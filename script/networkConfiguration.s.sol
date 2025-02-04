@@ -1,110 +1,119 @@
-//SPDX-License-Identifier : MIT
+// SPDX-License-Identifier: MIT
 pragma solidity ^0.8.22;
 
-import {Script} from "forge-std/Script.sol";
+import {Script, console} from "forge-std/Script.sol";
 import {VRFCoordinatorV2_5Mock} from "@chainlink/contracts/src/v0.8/vrf/mocks/VRFCoordinatorV2_5Mock.sol";
+import {LinkToken} from "../test/mocks/LinkToken.sol";
 
 abstract contract constantWords {
     uint256 public constant sepolia_ID = 11155111;
     uint256 public constant local_ID = 31337;
 }
 
-// The purpose is to achieve modularity by breaking down everythings into chunks
-
 contract NetworkConfiguration is Script, constantWords {
+    /** State variables */
+    mapping(uint256 => networkParams) public chainConfiguration;
 
-    /**state variables */
-    networkParams public localConfiguration;
-    mapping(uint256 chainConfiguration => networkParams) networkConfigMapping;
-
-    /**Functions */
-    constructor() {
-        // by default when this script will be initialized it will set the current mapping satus to this struct
-        networkConfigMapping[sepolia_ID] = getSepoliaConfiguration();
-    }
-
-    function getConfigurationByChainId(
-        uint256 chainID
-    ) public returns (networkParams memory) {
-        if (chainID == sepolia_ID) {
-            return networkConfigMapping[chainID];
-        } else if (chainID == local_ID) {
-            return getLocalConfiguration();
-        }
-    }
-
-    //break down everythings down to the chunks for achieving modularoty 
-    // function for getting sepolia configurations is perforiming single thing
-    // function for getting fetching and storing local environment is performing single thing
-    // however function for getting the configuration with the help of chain id is performing 2 things 
-    // therefore break it down into chunk 
-    
-    //This will return network configuration   
-    function getConfiguration() public  returns(networkParams memory){
-        return getConfigurationByChainId(block.chainid);
-    }
-
-    function getSepoliaConfiguration()
-        public
-        pure
-        returns (networkParams memory)
-    {
-        return
-            networkParams({
-                entranceFee: 1 ether,
-                timeLimit: 60,
-                subscriptionId: 97802776641483268026869314607947010537980447778541042774586935978233989077328,
-                vrfCoordinator: 0x9DdfaCa8183c41ad55329BdeeD9F6A8d53168B1B,
-                keyHash: 0x787d74caea10b2b357790d5b5247c2f63d1d91572a9846f780606e4d953677ae,
-                linkToken : 0x779877A7B0D9E8603169DdbD7836e478b4624789
-            });
-    }
-
-    function getLocalConfiguration() public returns (networkParams memory) {
-        VRFCoordinatorV2_5Mock vrf_mockContract;
-        if (localConfiguration.vrfCoordinator != address(0)) {
-            return localConfiguration;
-        }
-
-        vm.startBroadcast();
-        vrf_mockContract = new VRFCoordinatorV2_5Mock(1e5,1e5,1e10); 
-        vm.stopBroadcast();
-
-        //create amother function that will now setup the constructor as well it will return it
-
-        localConfiguration = networkParams({
-            entranceFee: 1 ether,
-            timeLimit: 60,
-            subscriptionId: 0,
-            vrfCoordinator: address(vrf_mockContract),
-            keyHash: 0x787d74caea10b2b357790d5b5247c2f63d1d91572a9846f780606e4d953677ae,
-            linkToken : 0x779877A7B0D9E8603169DdbD7836e478b4624789
-        });
-        networkConfigMapping[31337] = localConfiguration;
-        return localConfiguration;
-    }
-
-    /** struct */
+    /** Struct */
     struct networkParams {
         uint256 entranceFee;
         uint256 timeLimit;
         uint256 subscriptionId;
         address vrfCoordinator;
         bytes32 keyHash;
-        address linkToken; 
+        address linkToken;
+    }
+
+    /** Constructor */
+    constructor() {}
+
+    /** Functions */
+    function getConfigurationByChainId(
+        uint256 chainID
+    ) public returns (networkParams memory) {
+        if (chainConfiguration[chainID].vrfCoordinator != address(0)) {
+            return chainConfiguration[chainID];
+        }
+
+        if (chainID == sepolia_ID) {
+            chainConfiguration[sepolia_ID] = getSepoliaConfig();
+        } else {
+            chainConfiguration[local_ID] = getAnvilConfig();
+        }
+        return chainConfiguration[chainID];
+    }
+
+    // ----------------------------------------------------------------------
+
+    function getConfiguration() public returns (networkParams memory) {
+        return getConfigurationByChainId(block.chainid);
+    }
+
+    // ------------------------------------------------------------------------
+
+    function getSepoliaConfig() public pure returns (networkParams memory) {
+        return
+            networkParams({
+                entranceFee: 1 ether,
+                timeLimit: 60,
+                subscriptionId: 0,
+                vrfCoordinator: 0x9DdfaCa8183c41ad55329BdeeD9F6A8d53168B1B,
+                keyHash: 0x787d74caea10b2b357790d5b5247c2f63d1d91572a9846f780606e4d953677ae,
+                linkToken: 0x779877A7B0D9E8603169DdbD7836e478b4624789
+            });
+    }
+
+    // --------------------------------------------------------------------
+
+    function getAnvilConfig() public returns (networkParams memory) {
+        VRFCoordinatorV2_5Mock vrf_mockContract;
+        LinkToken token;
+
+        vm.startBroadcast();
+        vrf_mockContract = new VRFCoordinatorV2_5Mock(1e5, 1e5, 1e10);
+        token = new LinkToken();
+        vm.stopBroadcast();
+
+        console.log(
+            "VRF Coordinator address is this  :- ",
+            address(vrf_mockContract)
+        );
+        console.log("Link Token address is  :- ", address(token));
+
+        return
+            networkParams({
+                entranceFee: 1 ether,
+                timeLimit: 60,
+                subscriptionId: 0,
+                vrfCoordinator: address(vrf_mockContract),
+                keyHash: 0x787d74caea10b2b357790d5b5247c2f63d1d91572a9846f780606e4d953677ae,
+                linkToken: address(token)
+            });
+    }
+
+    function GetParametersConfigurationByPlacingId(
+        uint256 chain_id
+    ) public view returns (networkParams memory) {
+        return chainConfiguration[chain_id];
+    }
+
+    function updateChainConfig(
+        uint256 chainID,
+        networkParams memory params
+    ) public {
+        chainConfiguration[chainID] = params;
     }
 }
 
-// so far we created two functions that will help us to give the appropriate configuration one for the sepolia network and another one for the local network whicn is uncomplete
-// the question is that how these will be now fetched ?
+// Code heirarchy is that
+// There will be a empty constructor
+// There will be a function that will return me the configuration.
+// There will be another function this function will either return or generate me the instruction based on the chain id
+// then there will be two bottom functions supporting multiple chains configuration
+// then there will be another function that will enable me to pay for a particular subscription
 
-// like what is the purpose of this script
-// purpose is to generate the paramerters accordingly as per of the network.
+// currently initilizing the structs within the contract and not having a appropriate method for feteching the configurations were failing me badly.
+// let's give another try by initilizing the contract properly and placing a correct method for fetching the setings.
 
-// one type of parameters must be generated for the sepolia
-// one should be generated for local
-
-// achiving moularity ?
-
-// why did we create a local configuration variable of struct ?
-// why did we instiantie the sepolia struct
+// consequencs
+// this will be linked contract where each contract has a direct link with another contract or dependency between them might be high
