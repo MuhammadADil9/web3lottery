@@ -25,7 +25,7 @@ contract lotteryTest is Test {
     address public bilal = makeAddr("bilal");
 
     function setUp() external {
-        console.log("this is test contract address :- ",address(this));
+        console.log("this is test contract address :- ", address(this));
         deployScript testDeployScript = new deployScript();
         (testRafleContract, testNetworkConfig) = testDeployScript.deployRafle();
         (
@@ -178,10 +178,156 @@ contract lotteryTest is Test {
         testRafleContract.enterRafle{value: entranceFee}("bilal", "pakistan");
     }
 
+    /*//////////////////////////////////////////////////////////////
+         Check up keep returns true when every condition is met 
+    //////////////////////////////////////////////////////////////*/
+
+    function test_checkUpKeep() public UptoFivePersionIntoContract {
+        //conditions for the checkupkeep to be performed
+        // enough time should be passed                         Done
+        // more than 5 people should be in the contract         Done
+        // state of the contract should be opened               Done
+
+        //arrange
+        vm.warp(block.timestamp + timeLimit + 1);
+
+        //act
+        (bool checks, ) = testRafleContract.checkUpkeep("");
+
+        //asert
+        assert(checks);
+    }
+
+    /*//////////////////////////////////////////////////////////////
+         Check up keep returns false when conditions aren't met 
+    //////////////////////////////////////////////////////////////*/
+
+    function test_checkUpKeepFailsIfTimeLimitDoesNotExceed()
+        public
+        UptoFivePersionIntoContract
+    {
+        //conditions for the checkupkeep to be performed
+        // enough time should be passed                         Failed
+        // more than 5 people should be in the contract         Done
+        // state of the contract should be opened               Done
+
+        //arrange
+        // fails if the time limit does not match
+        vm.warp(block.timestamp + timeLimit);
+
+        //act
+        (bool checks, ) = testRafleContract.checkUpkeep("");
+
+        //asert
+        assert(!checks);
+    }
+
+    /*//////////////////////////////////////////////////////////////
+         Check up keep returns false when conditions aren't met 
+    //////////////////////////////////////////////////////////////*/
+
+    function test_checkUpKeepFailsIfPeopleDoesNotExceed()
+        public
+        UptoFourPersionIntoContract
+    {
+        //conditions for the checkupkeep to be performed
+        // enough time should be passed                         Done
+        // more than 5 people should be in the contract         Failed
+        // state of the contract should be opened               Done
+
+        //arrange
+        // fails if the time limit does not match
+        vm.warp(block.timestamp + timeLimit + 1);
+
+        //act
+        (bool checks, ) = testRafleContract.checkUpkeep("");
+
+        //asert
+        assert(!checks);
+    }
+
+    /*//////////////////////////////////////////////////////////////
+         Check up keep returns false when conditions aren't met 
+    //////////////////////////////////////////////////////////////*/
+
+    function test_checkUpKeepFailsIfStateIsNotOpened()
+        public
+        UptoFivePersionIntoContract
+    {
+        //conditions for the checkupkeep to be performed
+        // enough time should be passed                         Done
+        // more than 5 people should be in the contract         Done
+        // state of the contract should be opened               Failed
+
+        //arrange
+        // fails if the time limit does not match
+        vm.warp(block.timestamp + timeLimit + 1);
+        testRafleContract.closeRafle();
+        //act
+        (bool checks, ) = testRafleContract.checkUpkeep("");
+
+        //asert
+        assert(!checks);
+    }
+
+    /*////////////////////////////////////////////////////////////////////////////
+                        Perform up keeps run well 
+    ////////////////////////////////////////////////////////////////////////////*/
+
+    function test_performUpKeepGoesWell()
+        public
+        UptoFivePersionIntoContract
+    {
+        
+        // test up keep should return when 3 of the conditions are met properly.
+
+        //arrange
+        vm.warp(block.timestamp + timeLimit + 1);
+        
+        //act && assert
+        testRafleContract.performUpkeep("");
+        
+    }
+
+    /*//////////////////////////////////////////////////////////////
+         Perform up keep should fail because check up keep fails 
+    //////////////////////////////////////////////////////////////*/
+
+    function test_performUpKeepFails()
+        public
+        UptoFivePersionIntoContract
+    {
+        
+        // should fail because checkup keep will return false as enough won't pass.
+
+        //arrange
+        vm.warp(block.timestamp + timeLimit);        
+
+
+        //act & asert
+        vm.expectRevert(rafleCotnract.Rafle_invalidPerformUpkeep.selector);
+        testRafleContract.performUpkeep("");
+        //expecting a revert 
+    }
+
+    // check for the constructor code
+
     /** Modifiers */
     modifier PersonHasBalance() {
         vm.deal(bilal, entranceFee);
         vm.prank(bilal);
+        _;
+    }
+
+    modifier UptoFourPersionIntoContract() {
+        for (uint256 a = 1; a <= 4; a++) {
+            string memory integerConvertedToString = vm.toString(a);
+            address addr = makeAddr(integerConvertedToString); // Generate a deterministic address
+            vm.deal(addr, entranceFee); // Assign balance to the address
+            vm.startPrank(addr); // Start prank for the address
+            testRafleContract.enterRafle{value: entranceFee}("abc", "pakistan"); // Enter the raffle
+            vm.stopPrank(); // Stop prank
+        }
         _;
     }
 

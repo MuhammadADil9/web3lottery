@@ -31,6 +31,7 @@ contract rafleCotnract is VRFConsumerBaseV2Plus {
     uint16 private constant REQUEST_CONFIRMATION = 2;
     uint32 private constant NUM_OF_WORDS = 1;
     uint256 private s_requestId = 0;
+
     /**Functions */
     constructor(
         uint256 _entranceFee,
@@ -52,7 +53,7 @@ contract rafleCotnract is VRFConsumerBaseV2Plus {
         string memory _name,
         string memory _country
     ) public payable {
-        //checks 
+        //checks
 
         if (msg.value < i_entranceFee) {
             revert Rafle_insufficientEntranceFee(msg.value, 1 ether);
@@ -60,8 +61,8 @@ contract rafleCotnract is VRFConsumerBaseV2Plus {
         if (uint(s_ContractStatus) != 0) {
             revert Rafle_contractStateNotOpened();
         }
-        
-        // effects 
+
+        // effects
         s_userArray.push(
             userData({
                 name: _name,
@@ -75,33 +76,25 @@ contract rafleCotnract is VRFConsumerBaseV2Plus {
         emit userEntered(msg.sender, _country);
     }
 
-
-
     function checkUpkeep(
         bytes memory /* checkData */
-    )
-        public
-        view
-        returns (bool upkeepNeeded, bytes memory /* performData */)
-    {
+    ) public view returns (bool upkeepNeeded, bytes memory /* performData */) {
         bool time = (block.timestamp - lastTimeContractInitiated) > i_timeLimit;
-        bool people = s_userArray.length >=5;
+        bool people = s_userArray.length >= 5;
         bool stateOpened = uint(s_ContractStatus) == 0;
         upkeepNeeded = time && people && stateOpened;
-        return(upkeepNeeded,"0x0");
+        return (upkeepNeeded, "0x0");
     }
 
-
-
-        function performUpkeep(bytes calldata /* performData */) external {
+    function performUpkeep(bytes calldata /* performData */) external {
         //checks
-        (bool upkeepNeeded,) = checkUpkeep("");
+        (bool upkeepNeeded, ) = checkUpkeep("");
 
-        if(!upkeepNeeded){
+        if (!upkeepNeeded) {
             revert Rafle_invalidPerformUpkeep();
         }
 
-        //interactions 
+        //interactions
         s_requestId = s_vrfCoordinator.requestRandomWords(
             VRFV2PlusClient.RandomWordsRequest({
                 keyHash: i_keyHash,
@@ -119,37 +112,34 @@ contract rafleCotnract is VRFConsumerBaseV2Plus {
         emit lotteryInitiated();
         //effects
         //closing the lottery becuase once inititaed it will only open when winner is selected and everything is done
-         s_ContractStatus = contractStatus.pending;
-
+        s_ContractStatus = contractStatus.pending;
     }
-
-
 
     function fulfillRandomWords(
         uint256 requestId,
-        uint256[] calldata randomWords 
+        uint256[] calldata randomWords
     ) internal override {
         //checks
 
         //effects
         //first of the number received will be modulos by the total number
         uint winnerIndex = randomWords[0] % s_userArray.length;
-        uint256 amountToTransfer = address(this).balance - (s_userArray.length * 1 ether);
+        uint256 amountToTransfer = address(this).balance -
+            (s_userArray.length * 1 ether);
         winner = s_userArray[winnerIndex].userAddress;
         //transfering the amount to the winner
-         (bool success, ) = winner.call{value: amountToTransfer}("");
-    if (!success) {
-        revert Rafle_failedToTransferMoney(); 
-    }
-        
+        (bool success, ) = winner.call{value: amountToTransfer}("");
+        if (!success) {
+            revert Rafle_failedToTransferMoney();
+        }
+
         //emitting the event that winner is selected
         emit Rafle_winnerSelected();
         //resetting the array once again
-        delete s_userArray; 
+        delete s_userArray;
         lastTimeContractInitiated = block.timestamp;
-        // reopening the array once everything is donw 
+        // reopening the array once everything is donw
         s_ContractStatus = contractStatus.open;
-
     }
 
     function closeRafle() public {
@@ -161,15 +151,15 @@ contract rafleCotnract is VRFConsumerBaseV2Plus {
         return i_entranceFee;
     }
 
-    function getState() public view returns(uint256){
+    function getState() public view returns (uint256) {
         return uint(s_ContractStatus);
     }
 
-    function getContractBalance() public view returns(uint256){
+    function getContractBalance() public view returns (uint256) {
         return address(this).balance;
     }
 
-    function getUserQuantity() public view returns(uint256){
+    function getUserQuantity() public view returns (uint256) {
         return s_userArray.length;
     }
 
@@ -178,7 +168,7 @@ contract rafleCotnract is VRFConsumerBaseV2Plus {
     /**Events */
     event userEntered(address indxed, string indexed);
     event lotteryInitiated();
-    //event for declaring thw winner 
+    //event for declaring thw winner
     event Rafle_winnerSelected();
 
     /**Errors */
@@ -206,5 +196,3 @@ contract rafleCotnract is VRFConsumerBaseV2Plus {
         pending
     }
 }
-
-

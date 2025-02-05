@@ -7,16 +7,13 @@ import {constantWords} from "./networkConfiguration.s.sol";
 import {IVRFCoordinatorV2Plus} from "@chainlink/contracts/src/v0.8/vrf/dev/interfaces/IVRFCoordinatorV2Plus.sol";
 import {LinkTokenInterface} from "@chainlink/contracts/src/v0.8/shared/interfaces/LinkTokenInterface.sol";
 import {LinkToken} from "../test/mocks/LinkToken.sol";
+import {DevOpsTools} from "lib/foundry-devops/src/DevOpsTools.sol";
+
+
 
 contract subscriptionContract is Script, constantWords {
     function run() public {}
-
-    // What is required for creating subscription ?
-    // cordinaor address is required for doing so
-
-    // another way is to do so using the if and else statement by removing the initilizaion from the constructor
-    // in this way we can initialize the contracts or instances of the contract here as well
-
+ 
     function createSepoliaSubscription(address vrf) public returns (uint256) {
         //VRFCordinator will be of sepolia
         vm.startBroadcast();
@@ -65,7 +62,7 @@ contract subscriptionContract is Script, constantWords {
 }
 
 contract ConsumerAddition is Script, constantWords {
-    // this approach is good but the problem is again in the network configuration contract it should be flixble with good logic
+   
 
     function addSepoliaConsumer(
         uint256 id,
@@ -96,6 +93,8 @@ contract ConsumerAddition is Script, constantWords {
         address consumerAddress,
         address vrfCordinator
     ) public {
+        // address contractAddress = DevOpsTools.get_most_recent_deployment("rafleCotnract",block.chainid); 
+        // console.log("The contract address as per devops tool is :- ",contractAddress);
         vm.startBroadcast();
         VRFCoordinatorV2_5Mock(vrfCordinator).addConsumer(id, consumerAddress);
         vm.stopBroadcast();
@@ -120,7 +119,7 @@ contract ConsumerAddition is Script, constantWords {
         address consumerAddress,
         address networkConfig
     ) public {
-        // this will add the consumer depending on the blockchain in the appropriate subscription contract given the subscription ID
+      
         if (block.chainid == sepolia_ID) {
             SepoliaConsumer(consumerAddress, networkConfig);
         } else {
@@ -171,12 +170,7 @@ contract fundSubscription is Script, constantWords {
         console.log(" the subscription  id is :- ", idd, " the cordinator address is :- ",vrf);
         vm.startBroadcast();
         VRFCoordinatorV2_5Mock(tempArguments.vrfCoordinator).fundSubscription(tempArguments.subscriptionId,AmountToFund);
-        // LinkToken(tempArguments.linkToken).transferAndCall(
-        //     tempArguments.vrfCoordinator,
-        //     AmountToFund,
-        //     data
-        // );
-
+       
         vm.stopBroadcast();
     }
 }
