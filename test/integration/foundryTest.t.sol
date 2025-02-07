@@ -373,7 +373,7 @@ contract lotteryTest is Test {
 
     }
     
-    function test_fulfilRandomWordsFailIfCalledMaliciously() public {
+    function test_fulfilRandomWordsFailIfCalledMaliciously(uint256 randomNumber) public {
         
         // If someone maliciously call the fulfilrandom words at the back it should revert with a error
 
@@ -381,7 +381,7 @@ contract lotteryTest is Test {
         vm.expectRevert(VRFCoordinatorV2_5Mock.InvalidRequest.selector);
         
         //Act & Assert 
-        VRFCoordinatorV2_5Mock(vrfCoordinator).fulfillRandomWords(0,address(testRafleContract));
+        VRFCoordinatorV2_5Mock(vrfCoordinator).fulfillRandomWords(randomNumber,address(testRafleContract));
         
     }
 
