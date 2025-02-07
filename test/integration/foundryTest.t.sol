@@ -6,6 +6,7 @@ import {rafleCotnract} from "../../src/rafle.sol";
 import {Test, console} from "forge-std/Test.sol";
 import {NetworkConfiguration} from "../../script/networkConfiguration.s.sol";
 import {Vm} from "forge-std/Vm.sol";
+import {VRFCoordinatorV2_5Mock} from "@chainlink/contracts/src/v0.8/vrf/mocks/VRFCoordinatorV2_5Mock.sol";
 
 contract lotteryTest is Test {
     //get the parameters and the deployed contract itself
@@ -117,7 +118,7 @@ contract lotteryTest is Test {
     }
 
     /*//////////////////////////////////////////////////////////////
-                 BALANCE ISN'T PRESENT BUT STATE IS CLOSED
+                 BALANCE ISN'T PRESENT BUT STATE IS open
     //////////////////////////////////////////////////////////////*/
 
     function testFeeNotAvailableButLotteryIsOpen() public {
@@ -148,7 +149,7 @@ contract lotteryTest is Test {
         //Arrange
         //ACT
         vm.expectEmit(true, true, false, false, address(testRafleContract));
-        emit rafleCotnract.userEntered(bilal, "pakistan");
+        emit rafleCotnract.Rafle_userEntered(bilal, "pakistan");
         testRafleContract.enterRafle{value: entranceFee}("bilal", "pakistan");
     }
 
@@ -298,11 +299,10 @@ contract lotteryTest is Test {
         UptoFivePersionIntoContract
     {
         
-        // should fail because checkup keep will return false as enough won't pass.
+        // should fail because checkup keep will return false as enough time won't pass.
 
         //arrange
         vm.warp(block.timestamp + timeLimit);        
-
 
         //act & asert
         vm.expectRevert(rafleCotnract.Rafle_invalidPerformUpkeep.selector);
@@ -310,7 +310,90 @@ contract lotteryTest is Test {
         //expecting a revert 
     }
 
+
+
+
+    /*//////////////////////////////////////////////////////////////
+         TESTING ID IS NOT NULL 
+    //////////////////////////////////////////////////////////////*/
+
+
+    function test_WhatIsTestId() UptoFivePersionIntoContract public {
+        //listen for the event when getRandomNumber method is called
+        //meet the criteria for getting it called that is getting at least 5 users, time passed & state must be opened
+
+        // arrange 
+        vm.warp(block.timestamp + timeLimit + 1);
+        vm.recordLogs();
+
+        //act
+        testRafleContract.performUpkeep("");
+        Vm.Log[] memory entries = vm.getRecordedLogs();
+
+        //assert
+        //we are getting two logs one from the cordinator and one that we are emitting ourselves
+        assertEq(entries.length,2);
+        //everything that we receive as the result of event array we usually decode it 
+        uint256 ranNumber = uint256(entries[1].topics[1]);
+        assertEq(entries[1].topics[0], keccak256("Rafle_RandomId(uint256)"));
+        //console log number is one
+        console.log(ranNumber);
+        //make sure that the number we are reciving is not equvalent to zero meaning we are getting to receivie something
+        assert(ranNumber != 0);
+
+    }
+
+
+    
+    /*///////////////////////////////////////////////////////////////////////////
+    Person isn't able to enter into the ragle when perform up keep is triggered 
+    ////////////////////////////////////////////////////////////////////////////*/
+
+
+    function test_PersonShouldNotEnterIntoTheRafleIfPerformUpKeepIsTriggered() public UptoFivePersionIntoContract {
+        //make sure the conditions are met for triggering the contract
+        //trigger the perform up keep
+        //then make sure person should not be able to enter in the rafle 
+
+        //Arrange
+        vm.warp(block.timestamp + timeLimit + 1);
+        vm.recordLogs();
+        testRafleContract.performUpkeep("");
+        Vm.Log[] memory entries = vm.getRecordedLogs();
+
+        //Act 
+        vm.expectRevert(rafleCotnract.Rafle_contractStateNotOpened.selector);
+        vm.deal(bilal,1 ether);
+        vm.prank(bilal);
+        testRafleContract.enterRafle{value:entranceFee}("bilal","pakistan");
+        
+
+        //assert 
+        assert(entries.length == 2);
+
+    }
+    
+    function test_fulfilRandomWordsFailIfCalledMaliciously() public {
+        
+        // If someone maliciously call the fulfilrandom words at the back it should revert with a error
+
+        //Arrange 
+        vm.expectRevert(VRFCoordinatorV2_5Mock.InvalidRequest.selector);
+        
+        //Act & Assert 
+        VRFCoordinatorV2_5Mock(vrfCoordinator).fulfillRandomWords(0,address(testRafleContract));
+        
+    }
+
     // check for the constructor code
+
+
+
+
+
+
+
+
 
     /** Modifiers */
     modifier PersonHasBalance() {

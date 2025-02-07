@@ -73,7 +73,7 @@ contract rafleCotnract is VRFConsumerBaseV2Plus {
 
         //interaction
 
-        emit userEntered(msg.sender, _country);
+        emit Rafle_userEntered(msg.sender, _country);
     }
 
     function checkUpkeep(
@@ -109,7 +109,8 @@ contract rafleCotnract is VRFConsumerBaseV2Plus {
             })
         );
         // emitting a event that a event is initiated
-        emit lotteryInitiated();
+        // emit Rafle_lotteryInitiated();
+        emit Rafle_RandomId(s_requestId);
         //effects
         //closing the lottery becuase once inititaed it will only open when winner is selected and everything is done
         s_ContractStatus = contractStatus.pending;
@@ -166,11 +167,11 @@ contract rafleCotnract is VRFConsumerBaseV2Plus {
     /**Function Modifiers */
 
     /**Events */
-    event userEntered(address indxed, string indexed);
-    event lotteryInitiated();
+    event Rafle_userEntered(address indxed, string indexed);
+    event Rafle_lotteryInitiated();
     //event for declaring thw winner
     event Rafle_winnerSelected();
-
+    event Rafle_RandomId(uint indexed);
     /**Errors */
 
     error Rafle_insufficientEntranceFee(uint256 sender, uint256 required);

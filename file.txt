@@ -144,4 +144,20 @@ so basically these things are happening on chain and we just simply want to copy
 
 
 
+emit eventLog1(uint256 indexed id, string name, string class)
+
+
+
+emit eventLog2(uint256 indexed id, string  indexed name, string class)
+
  
+array with topics array at zero index 
+a array with data or unindexed data at the 2nd index 
+
+array[0].topics[0]
+array[0].topics[1]
+array[0].topics[2]
+array[2] = that should return me data. 
+
+then why do I need to make fetch it like this
+array[].
