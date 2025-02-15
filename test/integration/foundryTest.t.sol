@@ -406,30 +406,35 @@ contract lotteryTest is Test {
         uint256 requestedID = uint256(entries[1].topics[1]); 
         uint256 rafleStateAfterRandomIdIsRequested = testRafleContract.getState();
         VRFCoordinatorV2_5Mock(vrfCoordinator).fulfillRandomWords(requestedID,address(testRafleContract));
-        // uint256 stateAfterWinnerIsSelected = testRafleContract.getState();
 
-        // uint256 addresssss = testRafleContract.getWinnerIndex();
-        // address winnerAddress = testRafleContract.getWinner();
-        // uint256 winnerAmount = testRafleContract.getWinnerBalance();
-        // uint256 confirmingWinnerBalance = (testRafleContract.getUserQuantity() - 1) * 1 ether;
-        // uint256 contractBalanceAfterLottery = testRafleContract.getContractBalance();
+        uint256 winnerLuckyNumber = testRafleContract.winnerIndex();
+        uint rNumber = testRafleContract.randomizedNumber();
+        address winnerAddress = testRafleContract.getWinner();
+        uint256 winnerAmount = testRafleContract.getWinnerBalance();
+        uint256 confirmingWinnerBalance = (noOfPeople - 1) * 1 ether;
+
+        // uint256 contractBalanceAfterLottery =   testRafleContract.getContractBalance();
+        // uint256 stateAfterWinnerIsSelected = testRafleContract.getState();
 
 
         //assert 
-        // assertEq(stateAfterWinnerIsSelected,0);
-        // assertEq(noOfPeople,5);
-        // assertEq(winnerAddressBeforeGettingLottery,address(0));
-        // assertEq(initialBalance,5 ether);
-        // assertEq(entries.length,2);
-        // assert(requestedID != 0);
-        // assert(rafleStateAfterRandomIdIsRequested == 1);
-        // console.log("Winner index is :- ",addresssss);
-        // console.log("winner address is empty before winner is selected");
-        // assert(winnerAddressBeforeGettingLottery == address(0));
-        // console.log("winner address isn't empty after lottery was initiated",winnerAddress);
-        // assert(winnerAddress != address(0));
+        assertEq(noOfPeople,5);
+        assertEq(winnerAddressBeforeGettingLottery,address(0));
+        assertEq(initialBalance,5 ether);
+        assertEq(entries.length,2);
+        assert(requestedID != 0);
+        assert(rafleStateAfterRandomIdIsRequested == 1);
+        console.log("Winner lucky number is :- ",winnerLuckyNumber);
+        console.log("Random Number is :- ",rNumber);
+        console.log("winner address isn't empty after lottery was initiated",winnerAddress);
+        assert(winnerAddress != address(0));
+        assertEq(confirmingWinnerBalance,winnerAmount);
+        
         // assert(winnerAmount == confirmingWinnerBalance);
         // assert(contractBalanceAfterLottery >= 1 ether);
+        // assertEq(stateAfterWinnerIsSelected,0);
+
+
     }
 
 

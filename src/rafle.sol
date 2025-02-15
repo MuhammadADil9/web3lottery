@@ -25,6 +25,7 @@ contract rafleCotnract is VRFConsumerBaseV2Plus {
 
     //for testing
     uint256 public winnerIndex;
+    uint256 public randomizedNumber;
 
     //VRF request para meters
     uint256 private immutable i_subscriptionId;
@@ -122,9 +123,9 @@ contract rafleCotnract is VRFConsumerBaseV2Plus {
         uint256 requestId,
         uint256[] calldata randomWords
     ) internal override {
-        winnerIndex = randomWords[0] % s_userArray.length;
-        uint256 amountToTransfer = address(this).balance -
-            (s_userArray.length * 1 ether);
+        randomizedNumber = randomWords[0];
+        winnerIndex = randomizedNumber % s_userArray.length;
+        uint256 amountToTransfer = address(this).balance - 1 ether;
         winner = s_userArray[winnerIndex].userAddress;
         //transfering the amount to the winner
         (bool success, ) = winner.call{value: amountToTransfer}("");
@@ -145,7 +146,42 @@ contract rafleCotnract is VRFConsumerBaseV2Plus {
         s_ContractStatus = contractStatus.pending;
     }
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
     /**Getters */
+
+
+    function getUserQuantity() public view returns (uint256) {
+        return s_userArray.length;
+    }
+
     function getEntranceAmount() public view returns (uint256) {
         return i_entranceFee;
     }
@@ -158,9 +194,7 @@ contract rafleCotnract is VRFConsumerBaseV2Plus {
         return address(this).balance;
     }
 
-    function getUserQuantity() public view returns (uint256) {
-        return s_userArray.length;
-    }
+    
 
     function getLastTime() public view returns (uint256){
         return lastTimeContractInitiated;
@@ -174,9 +208,6 @@ contract rafleCotnract is VRFConsumerBaseV2Plus {
         return winner.balance;
     }
 
-    function getWinnerIndex() public view returns(uint256){
-        return  winnerIndex;
-    }
 
     /**Function Modifiers */
 
