@@ -161,3 +161,16 @@ array[2] = that should return me data.
 
 then why do I need to make fetch it like this
 array[].
+
+
+
+goal 
+
+to deploy the smart contract on the test net. 
+to integrate front end with it based on react.
+making up understanding of ether js or web 3 js  
+to set up a server using node
+to understand abi encoding and decoding
+what is binary & hex
+difference between binary and byte code 
+

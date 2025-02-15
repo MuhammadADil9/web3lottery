@@ -23,11 +23,14 @@ contract rafleCotnract is VRFConsumerBaseV2Plus {
     contractStatus private s_ContractStatus;
     address payable private winner;
 
-    //VRF request parameters
+    //for testing
+    uint256 public winnerIndex;
+
+    //VRF request para meters
     uint256 private immutable i_subscriptionId;
     address private immutable i_vrfCoordinator;
     bytes32 private immutable i_keyHash;
-    uint32 private constant CALLBACKGASLIMIT = 5000;
+    uint32 private constant CALLBACKGASLIMIT = 500000;
     uint16 private constant REQUEST_CONFIRMATION = 2;
     uint32 private constant NUM_OF_WORDS = 1;
     uint256 private s_requestId = 0;
@@ -104,14 +107,13 @@ contract rafleCotnract is VRFConsumerBaseV2Plus {
                 numWords: NUM_OF_WORDS,
                 // Set nativePayment to true to pay for VRF requests with Sepolia ETH instead of LINK
                 extraArgs: VRFV2PlusClient._argsToBytes(
-                    VRFV2PlusClient.ExtraArgsV1({nativePayment: true})
+                    VRFV2PlusClient.ExtraArgsV1({nativePayment: false})
                 )
             })
         );
-        // emitting a event that a event is initiated
-        // emit Rafle_lotteryInitiated();
+        // emitting a event 
         emit Rafle_RandomId(s_requestId);
-        //effects
+
         //closing the lottery becuase once inititaed it will only open when winner is selected and everything is done
         s_ContractStatus = contractStatus.pending;
     }
@@ -120,11 +122,7 @@ contract rafleCotnract is VRFConsumerBaseV2Plus {
         uint256 requestId,
         uint256[] calldata randomWords
     ) internal override {
-        //checks
-
-        //effects
-        //first of the number received will be modulos by the total number
-        uint winnerIndex = randomWords[0] % s_userArray.length;
+        winnerIndex = randomWords[0] % s_userArray.length;
         uint256 amountToTransfer = address(this).balance -
             (s_userArray.length * 1 ether);
         winner = s_userArray[winnerIndex].userAddress;
@@ -162,6 +160,22 @@ contract rafleCotnract is VRFConsumerBaseV2Plus {
 
     function getUserQuantity() public view returns (uint256) {
         return s_userArray.length;
+    }
+
+    function getLastTime() public view returns (uint256){
+        return lastTimeContractInitiated;
+    }
+
+    function getWinner() public view returns(address){
+        return winner;
+    }
+
+    function getWinnerBalance() public view returns(uint256){
+        return winner.balance;
+    }
+
+    function getWinnerIndex() public view returns(uint256){
+        return  winnerIndex;
     }
 
     /**Function Modifiers */

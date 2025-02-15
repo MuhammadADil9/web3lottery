@@ -169,7 +169,7 @@ contract fundSubscription is Script, constantWords {
 
         console.log(" the subscription  id is :- ", idd, " the cordinator address is :- ",vrf);
         vm.startBroadcast();
-        VRFCoordinatorV2_5Mock(tempArguments.vrfCoordinator).fundSubscription(tempArguments.subscriptionId,AmountToFund);
+        VRFCoordinatorV2_5Mock(tempArguments.vrfCoordinator).fundSubscription(tempArguments.subscriptionId,AmountToFund*10000);
        
         vm.stopBroadcast();
     }
