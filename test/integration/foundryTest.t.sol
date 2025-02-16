@@ -396,7 +396,7 @@ contract lotteryTest is Test {
         uint256 initialBalance = testRafleContract.getContractBalance();
         uint256 noOfPeople = testRafleContract.getUserQuantity();
         uint256 initialTime = testRafleContract.getLastTime();
-        vm.warp(block.timestamp + timeLimit + 1);
+        vm.warp(block.timestamp + timeLimit + 122);
         address winnerAddressBeforeGettingLottery = testRafleContract.getWinner();
         // ACT
 
@@ -405,6 +405,12 @@ contract lotteryTest is Test {
         Vm.Log[] memory entries = vm.getRecordedLogs();
         uint256 requestedID = uint256(entries[1].topics[1]); 
         uint256 rafleStateAfterRandomIdIsRequested = testRafleContract.getState();
+
+
+        vm.expectEmit(false, false, false, false, address(testRafleContract));
+        emit rafleCotnract.Rafle_winnerSelected();
+
+
         VRFCoordinatorV2_5Mock(vrfCoordinator).fulfillRandomWords(requestedID,address(testRafleContract));
 
         uint256 winnerLuckyNumber = testRafleContract.winnerIndex();
@@ -413,8 +419,9 @@ contract lotteryTest is Test {
         uint256 winnerAmount = testRafleContract.getWinnerBalance();
         uint256 confirmingWinnerBalance = (noOfPeople - 1) * 1 ether;
 
-        // uint256 contractBalanceAfterLottery =   testRafleContract.getContractBalance();
-        // uint256 stateAfterWinnerIsSelected = testRafleContract.getState();
+        uint256 timeStampAfterLottery = testRafleContract.getLastTime();
+        
+        uint256 stateAfterWinnerIsSelected = testRafleContract.getState();
 
 
         //assert 
@@ -429,10 +436,10 @@ contract lotteryTest is Test {
         console.log("winner address isn't empty after lottery was initiated",winnerAddress);
         assert(winnerAddress != address(0));
         assertEq(confirmingWinnerBalance,winnerAmount);
-        
-        // assert(winnerAmount == confirmingWinnerBalance);
-        // assert(contractBalanceAfterLottery >= 1 ether);
-        // assertEq(stateAfterWinnerIsSelected,0);
+        assertEq(testRafleContract.getContractBalance(),1 ether);
+        assertEq(testRafleContract.getUserQuantity(),0);
+        assert(timeStampAfterLottery>initialTime);
+        assertEq(stateAfterWinnerIsSelected,0);
 
 
     }
