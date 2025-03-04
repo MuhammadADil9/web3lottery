@@ -1,0 +1,66 @@
+with the help of automation compatible service we can automate our task in smart contract based on certian conditions or time span. 
+
+
+it is a decentralized automation service that allow chainlink to execute the task autonomously. 
+Its node constantly check  in automation registry to check which upkeeps to perform.
+once it identifies that something is about to happen then it automatically send a signed report along with ( peform data ) the same argument that the peformupkeep takes as a argument. 
+
+
+automation registry keeps the record of the registered upkeeps, rules for executing them and also compensates the developers. 
+automation registrar keeps adds the new upkeeps to the registry, act as intermediary between the developers and automation registry. 
+
+there are 4 types of triggers
+
+> log base trigger
+> time base trigger 
+> condition/custom logic base trigger 
+
+
+
+
+
+
+
+
+
+
+
+
+
+------- Functionality ---------- 
+
+for time base & custom logic trigger we need to make sure our contract is 
+> automationCompatible and that it has checkupkeep and performupkeep functions.
+
+
+
+
+
+
+
+-------- way to register contract -----------------
+
+ways to register upkeeps programattically
+
+> make sure that contract has the function check up keep and perform up keep 
+> make sure that your contract ( the contract that will register ) have sufficent amount of Link tokens to fund the upkeep 
+> it has the address of link token, registry address and registrar adress as per of the current network 
+
+> allow the registar to take the funds from the contract 
+> then invoke the function of the registar to register the contract using a struct of appropriate parameters.
+
+
+---------------------------
+deploy your contract on chain and then fund it with sufficient amount of link tokens 
+Finally call the specific function to make sure everything works fine 
+
+
+
+
+
+
+
+
+
+
+

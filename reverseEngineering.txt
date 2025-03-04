@@ -1,0 +1,32 @@
+
+
+
+initial balance = 5 ether 
+no of people = 5;
+initial time = ? 
+increased block timing so that lottery can be initiated.
+winner address before getting lottery should be zero
+
+
+> winner address is zero initally 
+> entries should consist of 2 logs > success
+> reqestedID isn't zero > success 
+> rafle state is closed after peformup keep is called > sucess 
+
+
+
+
+
+
+how does internal, private, external and public works 
+
+
+
+
+
+
+
+
+
+
+in peform up keep we are only requesting a radnom number, emitting a event and closing the lottery state of the contract 
